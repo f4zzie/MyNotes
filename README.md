@@ -56,8 +56,8 @@ MyNotes/
 
 ## 📧 Contact
 
-- **GitHub:** [@TeddyMbithi](https://github.com/TeddyMbithi)
-- **Website:** [https://TeddyMbithi.github.io/MyNotes/](https://TeddyMbithi.github.io/MyNotes/)
+- **GitHub:** [@TeddyMbithi](https://github.com/f4zzie)
+- **Website:** [https://TeddyMbithi.github.io/MyNotes/](https://f4zzie.github.io/MyNotes/)
 
 ---
 
