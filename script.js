@@ -1,560 +1,352 @@
 // ========================================
-// Mobile Navigation Toggle
+// Global State
 // ========================================
-const hamburger = document.getElementById('hamburger');
-const navMenu = document.getElementById('nav-menu');
+let contentStructure = null;
+const TYPED_STRINGS = [
+    'Cybersecurity Enthusiast',
+    'CTF Player',
+    'Malware Analyst',
+    'Reverse Engineer',
+    'Binary Exploiter'
+];
 
 // ========================================
-// Smooth Scrolling Navigation
+// DOM Elements
 // ========================================
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        
-        if (target) {
-            const navHeight = document.querySelector('.navbar').offsetHeight;
-            const targetPosition = target.offsetTop - navHeight;
-            
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
-            
-            // Close mobile menu if open
-            if (window.innerWidth <= 968) {
-                navMenu.classList.remove('active');
-                hamburger.classList.remove('active');
-            }
-        }
-    });
-});
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const navbar = $('#navbar');
+const hamburger = $('#hamburger');
+const navMenu = $('#nav-menu');
+const themeToggle = $('#theme-toggle');
+const searchToggle = $('#search-toggle');
+const searchModal = $('#search-modal');
+const searchInput = $('#search-input');
+const searchResults = $('#search-results');
+const backToTop = $('#back-to-top');
+const scrollProgress = $('#scroll-progress');
+const mainContent = $('#main-content');
+const contentView = $('#content-view');
 
 // ========================================
-// Mobile Navigation Toggle Handlers
+// Theme Management
 // ========================================
+function initTheme() {
+    const saved = localStorage.getItem('theme');
+    const body = document.body;
+    const icon = themeToggle.querySelector('i');
 
-hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
-});
-
-// Close mobile menu when clicking outside
-document.addEventListener('click', (e) => {
-    if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
-        hamburger.classList.remove('active');
-        navMenu.classList.remove('active');
-    }
-});
-
-// ========================================
-// Navbar Scroll Effect
-// ========================================
-const navbar = document.getElementById('navbar');
-let lastScroll = 0;
-
-window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-    
-    // Add shadow on scroll
-    if (currentScroll > 50) {
-        navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
+    if (saved === 'light') {
+        body.classList.remove('dark-theme');
+        icon.className = 'fas fa-moon';
     } else {
-        navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+        body.classList.add('dark-theme');
+        icon.className = 'fas fa-sun';
+        localStorage.setItem('theme', 'dark');
     }
-    
-    // Hide/show navbar on scroll (optional)
-    // if (currentScroll > lastScroll && currentScroll > 100) {
-    //     navbar.style.transform = 'translateY(-100%)';
-    // } else {
-    //     navbar.style.transform = 'translateY(0)';
-    // }
-    
-    lastScroll = currentScroll;
-});
-
-// ========================================
-// Dark/Light Theme Toggle
-// ========================================
-const themeToggle = document.getElementById('theme-toggle');
-const body = document.body;
-const themeIcon = themeToggle.querySelector('i');
-
-// Check for saved theme preference or default to light mode
-const currentTheme = localStorage.getItem('theme') || 'light';
-if (currentTheme === 'dark') {
-    body.classList.add('dark-theme');
-    themeIcon.classList.remove('fa-moon');
-    themeIcon.classList.add('fa-sun');
 }
 
-themeToggle.addEventListener('click', () => {
+function toggleTheme() {
+    const body = document.body;
+    const icon = themeToggle.querySelector('i');
     body.classList.toggle('dark-theme');
-    
-    // Update icon
+
     if (body.classList.contains('dark-theme')) {
-        themeIcon.classList.remove('fa-moon');
-        themeIcon.classList.add('fa-sun');
+        icon.className = 'fas fa-sun';
         localStorage.setItem('theme', 'dark');
     } else {
-        themeIcon.classList.remove('fa-sun');
-        themeIcon.classList.add('fa-moon');
+        icon.className = 'fas fa-moon';
         localStorage.setItem('theme', 'light');
     }
-});
-
-// ========================================
-// Scroll Animations
-// ========================================
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
-    });
-}, observerOptions);
-
-// Observe all cards and sections for animation
-const animateElements = document.querySelectorAll(
-    '.project-card, .stat-card, .skill-category, .contact-card, .about-text, .about-stats'
-);
-
-animateElements.forEach((el, index) => {
-    // Add animation delay based on index
-    el.style.transitionDelay = `${index * 0.1}s`;
-    
-    // Add slide-in class based on position
-    if (index % 2 === 0) {
-        el.classList.add('slide-in-left');
-    } else {
-        el.classList.add('slide-in-right');
-    }
-    
-    observer.observe(el);
-});
-
-// ========================================
-// Active Navigation Link Highlighting
-// ========================================
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav-link');
-
-function highlightNavigation() {
-    const scrollPosition = window.scrollY + 100;
-    
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
-        const sectionId = section.getAttribute('id');
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-            navLinks.forEach(link => {
-                link.classList.remove('active-link');
-                if (link.getAttribute('href') === `#${sectionId}`) {
-                    link.classList.add('active-link');
-                }
-            });
-        }
-    });
-}
-
-// Apply debounced scroll listeners
-const debouncedHighlight = debounce(highlightNavigation, 10);
-window.addEventListener('scroll', debouncedHighlight);
-
-// ========================================
-// Typing Effect for Hero Title (Optional)
-// ========================================
-function typeWriter(element, text, speed = 100) {
-    let i = 0;
-    element.textContent = '';
-    
-    function type() {
-        if (i < text.length) {
-            element.textContent += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
-        }
-    }
-    
-    type();
-}
-
-// Uncomment to enable typing effect
-// const heroTitle = document.querySelector('.hero-title .highlight');
-// if (heroTitle) {
-//     const originalText = heroTitle.textContent;
-//     typeWriter(heroTitle, originalText, 80);
-// }
-
-// ========================================
-// Scroll Progress Indicator (Optional)
-// ========================================
-function createScrollProgress() {
-    const progressBar = document.createElement('div');
-    progressBar.id = 'scroll-progress';
-    progressBar.style.cssText = `
-        position: fixed;
-        top: 70px;
-        left: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-        width: 0%;
-        z-index: 9999;
-        transition: width 0.2s ease;
-    `;
-    document.body.appendChild(progressBar);
-    
-    window.addEventListener('scroll', () => {
-        const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (window.scrollY / windowHeight) * 100;
-        progressBar.style.width = scrolled + '%';
-    });
-}
-
-// Uncomment to enable scroll progress indicator
-createScrollProgress();
-
-// ========================================
-// Lazy Loading Images (if any added)
-// ========================================
-if ('loading' in HTMLImageElement.prototype) {
-    const images = document.querySelectorAll('img[loading="lazy"]');
-    images.forEach(img => {
-        img.src = img.dataset.src;
-    });
-} else {
-    // Fallback for browsers that don't support lazy loading
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js';
-    document.body.appendChild(script);
 }
 
 // ========================================
-// Particle Background Effect (Optional)
+// Mobile Navigation
 // ========================================
-function createParticles() {
-    const hero = document.querySelector('.hero');
-    const particlesContainer = document.createElement('div');
-    particlesContainer.className = 'particles';
-    particlesContainer.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: 0;
-    `;
-    
-    for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
-        particle.style.cssText = `
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            opacity: 0.3;
-            left: ${Math.random() * 100}%;
-            top: ${Math.random() * 100}%;
-            animation: float ${5 + Math.random() * 10}s infinite ease-in-out;
-        `;
-        particlesContainer.appendChild(particle);
-    }
-    
-    hero.style.position = 'relative';
-    hero.insertBefore(particlesContainer, hero.firstChild);
-    
-    // Add animation CSS if not already present
-    if (!document.querySelector('#particle-animation')) {
-        const style = document.createElement('style');
-        style.id = 'particle-animation';
-        style.textContent = `
-            @keyframes float {
-                0%, 100% {
-                    transform: translateY(0) translateX(0);
-                }
-                50% {
-                    transform: translateY(-30px) translateX(20px);
-                }
+function toggleMobileNav() {
+    hamburger.classList.toggle('active');
+    navMenu.classList.toggle('active');
+}
+
+function closeMobileNav() {
+    hamburger.classList.remove('active');
+    navMenu.classList.remove('active');
+}
+
+// ========================================
+// Scroll Handling
+// ========================================
+function handleScroll() {
+    const scrollY = window.scrollY;
+
+    // Navbar scroll effect
+    navbar.classList.toggle('scrolled', scrollY > 20);
+
+    // Progress bar
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+    scrollProgress.style.width = progress + '%';
+
+    // Back to top
+    backToTop.classList.toggle('visible', scrollY > 400);
+
+    // Active nav link
+    highlightActiveNav();
+}
+
+function highlightActiveNav() {
+    const scrollPos = window.scrollY + 120;
+    $$('section[id]').forEach(section => {
+        const top = section.offsetTop;
+        const height = section.offsetHeight;
+        const id = section.getAttribute('id');
+        const link = $(`.nav-link[href="#${id}"]`);
+        if (link) {
+            if (scrollPos >= top && scrollPos < top + height) {
+                $$('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
             }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-// Uncomment to enable particle effect
-// createParticles();
-
-// ========================================
-// Performance Optimization
-// ========================================
-// Debounce function for scroll events
-function debounce(func, wait = 10) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// ========================================
-// Form Validation (if contact form is added)
-// ========================================
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-// ========================================
-// Analytics Event Tracking (Optional)
-// ========================================
-function trackEvent(category, action, label) {
-    // Add analytics tracking here if using Google Analytics or similar
-    console.log(`Event: ${category} - ${action} - ${label}`);
-}
-
-// Track external link clicks
-document.querySelectorAll('a[target="_blank"]').forEach(link => {
-    link.addEventListener('click', () => {
-        trackEvent('External Link', 'Click', link.href);
-    });
-});
-
-// Track navigation clicks
-navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        trackEvent('Navigation', 'Click', link.textContent);
-    });
-});
-
-// ========================================
-// Keyboard Navigation Enhancement
-// ========================================
-document.addEventListener('keydown', (e) => {
-    // Press 'T' to toggle theme
-    if (e.key === 't' || e.key === 'T') {
-        if (!e.target.matches('input, textarea')) {
-            themeToggle.click();
         }
-    }
-    
-    // Press 'Escape' to close mobile menu
-    if (e.key === 'Escape') {
-        hamburger.classList.remove('active');
-        navMenu.classList.remove('active');
-    }
-});
+    });
+}
 
 // ========================================
-// Copy to Clipboard Functionality (for code snippets if added)
+// Search
 // ========================================
-function addCopyButtons() {
-    const codeBlocks = document.querySelectorAll('pre code');
-    codeBlocks.forEach(block => {
-        const button = document.createElement('button');
-        button.className = 'copy-button';
-        button.textContent = 'Copy';
-        button.addEventListener('click', () => {
-            navigator.clipboard.writeText(block.textContent);
-            button.textContent = 'Copied!';
-            setTimeout(() => {
-                button.textContent = 'Copy';
-            }, 2000);
+function openSearch() {
+    searchModal.classList.add('active');
+    searchInput.value = '';
+    searchInput.focus();
+    document.body.style.overflow = 'hidden';
+    showSearchHint();
+}
+
+function closeSearch() {
+    searchModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showSearchHint() {
+    searchResults.innerHTML = `
+        <div class="search-hint">
+            <i class="fas fa-lightbulb"></i>
+            <p>Type to search through all notes and writeups</p>
+        </div>
+    `;
+}
+
+function performSearch(query) {
+    if (!contentStructure || !query.trim()) {
+        showSearchHint();
+        return;
+    }
+
+    const q = query.toLowerCase();
+    const results = [];
+
+    Object.entries(contentStructure.categories).forEach(([key, cat]) => {
+        cat.writeups.forEach(w => {
+            const searchStr = `${w.title} ${w.description} ${w.category} ${w.difficulty} ${cat.name}`.toLowerCase();
+            if (searchStr.includes(q)) {
+                results.push({ ...w, categoryKey: key, categoryName: cat.name, icon: cat.icon, encodedPath: encodePath(w.path) });
+            }
         });
-        block.parentElement.style.position = 'relative';
-        block.parentElement.appendChild(button);
+    });
+
+    if (results.length === 0) {
+        searchResults.innerHTML = `
+            <div class="search-hint">
+                <i class="fas fa-search"></i>
+                <p>No results found for "${escapeHTML(query)}"</p>
+            </div>
+        `;
+        return;
+    }
+
+    searchResults.innerHTML = results.map(r => `
+        <div class="search-result-item" onclick="closeSearch(); showWriteup('${r.categoryKey}', '${r.encodedPath}')">
+            <div class="result-icon"><i class="fas ${r.icon}"></i></div>
+            <div class="result-info">
+                <div class="result-title">${escapeHTML(r.title)}</div>
+                <div class="result-meta">${escapeHTML(r.categoryName)} &bull; ${escapeHTML(r.difficulty)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ========================================
+// Typing Effect
+// ========================================
+function initTypingEffect() {
+    const el = $('.typed-text');
+    if (!el) return;
+
+    let stringIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    let timeout;
+
+    function type() {
+        const current = TYPED_STRINGS[stringIdx];
+        if (isDeleting) {
+            el.textContent = current.substring(0, charIdx--);
+            timeout = charIdx < 0 ? 500 : 40;
+            if (charIdx < 0) {
+                isDeleting = false;
+                stringIdx = (stringIdx + 1) % TYPED_STRINGS.length;
+            }
+        } else {
+            el.textContent = current.substring(0, charIdx++);
+            timeout = charIdx > current.length ? 2000 : 80;
+            if (charIdx > current.length) {
+                isDeleting = true;
+            }
+        }
+        setTimeout(type, timeout);
+    }
+
+    setTimeout(type, 1000);
+}
+
+// ========================================
+// Counter Animation
+// ========================================
+function animateCounters() {
+    $$('.stat-number[data-count]').forEach(el => {
+        const target = parseInt(el.dataset.count);
+        const duration = 1500;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(target * eased) + '+';
+            if (progress < 1) requestAnimationFrame(update);
+        }
+
+        requestAnimationFrame(update);
     });
 }
 
 // ========================================
-// Console Easter Egg
+// Intersection Observer for Animations
 // ========================================
-console.log('%c👾 Welcome to f4zzie\'s Portfolio!', 'font-size: 20px; color: #3498db; font-weight: bold;');
-console.log('%cInterested in cybersecurity? Check out my GitHub: https://github.com/f4zzie', 'font-size: 14px; color: #2ecc71;');
-console.log('%cPress "T" to toggle dark/light theme!', 'font-size: 12px; color: #e74c3c;');
+function initAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
 
-// ========================================
-// Initialize on Page Load
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Add any initialization code here
-    highlightNavigation();
-    
-    // Smooth scroll to hash on page load
-    if (window.location.hash) {
-        setTimeout(() => {
-            const target = document.querySelector(window.location.hash);
-            if (target) {
-                const navHeight = navbar.offsetHeight;
-                window.scrollTo({
-                    top: target.offsetTop - navHeight,
-                    behavior: 'smooth'
-                });
+                // Trigger counters when hero stats become visible
+                if (entry.target.querySelector('.stat-number')) {
+                    animateCounters();
+                }
             }
-        }, 100);
-    }
-    
-    // Add loaded class to body for CSS animations
-    document.body.classList.add('loaded');
-});
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-// ========================================
-// Service Worker Registration (for PWA support - optional)
-// ========================================
-if ('serviceWorker' in navigator) {
-    // Uncomment to enable PWA features
-    // window.addEventListener('load', () => {
-    //     navigator.serviceWorker.register('/sw.js')
-    //         .then(reg => console.log('Service Worker registered'))
-    //         .catch(err => console.log('Service Worker registration failed'));
-    // });
+    $$('.animate-in, .stagger').forEach(el => observer.observe(el));
 }
 
 // ========================================
-// Export for testing (if needed)
+// Content Structure Loading
 // ========================================
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        validateEmail,
-        debounce,
-        trackEvent
-    };
-}
-
-// ========================================
-// Dynamic Content Loading System
-// ========================================
-
-let contentStructure = null;
-let currentView = 'home';
-
-// Load content structure
 async function loadContentStructure() {
     try {
-        const response = await fetch('content-structure.json');
-        contentStructure = await response.json();
-    } catch (error) {
-        console.error('Error loading content structure:', error);
+        const resp = await fetch('content-structure.json');
+        contentStructure = await resp.json();
+        renderCategories();
+    } catch (err) {
+        console.error('Failed to load content structure:', err);
     }
 }
 
-// Simple markdown to HTML converter
-function markdownToHTML(markdown, basePath = '') {
-    let html = markdown;
-    
-    // Extract the directory path from basePath for relative image resolution
-    const pathParts = basePath.split('/');
-    pathParts.pop(); // Remove filename
-    const dirPath = pathParts.join('/');
-    
-    // Images - must be processed before links to avoid conflicts
-    html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/gim, (match, alt, src) => {
-        // If it's a relative path, make it absolute from root
-        let imageSrc = src;
-        if (!src.startsWith('http') && !src.startsWith('/')) {
-            // Handle ../ paths by resolving them
-            if (src.includes('../')) {
-                const srcParts = src.split('/');
-                const baseParts = dirPath.split('/').filter(p => p); // Remove empty strings
-                
-                // Process each part of the source path
-                for (const part of srcParts) {
-                    if (part === '..') {
-                        baseParts.pop(); // Go up one directory
-                    } else if (part !== '.') {
-                        baseParts.push(part); // Add the path part
-                    }
-                }
-                
-                imageSrc = baseParts.join('/');
-            } else if (dirPath) {
-                // Relative to current directory
-                imageSrc = dirPath + '/' + src;
-            } else {
-                imageSrc = src;
-            }
-        }
-        
-        console.log('Image path resolved:', src, '->', imageSrc);
-        return `<img src="${imageSrc}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />`;
+// ========================================
+// Render Categories Grid
+// ========================================
+function renderCategories(filterKey = 'all') {
+    if (!contentStructure) return;
+
+    const grid = $('#categories-grid');
+    if (!grid) return;
+
+    const entries = Object.entries(contentStructure.categories);
+    const filtered = filterKey === 'all'
+        ? entries
+        : entries.filter(([key]) => key === filterKey);
+
+    grid.innerHTML = '';
+
+    filtered.forEach(([key, cat]) => {
+        const diffs = [...new Set(cat.writeups.map(w => w.difficulty.toLowerCase()))];
+        const tags = [...new Set(cat.writeups.flatMap(w => [w.category]))].slice(0, 4);
+
+        const card = document.createElement('div');
+        card.className = 'category-card animate-in';
+        card.setAttribute('data-category', key);
+        card.onclick = () => showCategoryView(key);
+
+        card.innerHTML = `
+            <div class="category-card-header">
+                <div class="category-card-icon"><i class="fas ${cat.icon}"></i></div>
+                <div>
+                    <h3>${cat.name}</h3>
+                    <span class="note-count">${cat.writeups.length} note${cat.writeups.length !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+            <p>${cat.description}</p>
+            <div class="category-card-tags">
+                ${tags.map(t => `<span class="mini-tag">${escapeHTML(t)}</span>`).join('')}
+            </div>
+            <div class="category-card-footer">
+                <div class="difficulty-badges">
+                    ${diffs.includes('beginner') || diffs.includes('easy') ? '<span class="diff-dot easy" title="Beginner"></span>' : ''}
+                    ${diffs.includes('intermediate') || diffs.includes('medium') ? '<span class="diff-dot medium" title="Intermediate"></span>' : ''}
+                    ${diffs.includes('advanced') || diffs.includes('hard') ? '<span class="diff-dot hard" title="Advanced"></span>' : ''}
+                </div>
+                <span class="view-link">Browse <i class="fas fa-arrow-right"></i></span>
+            </div>
+        `;
+
+        grid.appendChild(card);
     });
-    
-    // Headers
-    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-    
-    // Bold
-    html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-    
-    // Italic
-    html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
-    
-    // Links (after images to avoid conflicts)
-    html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" target="_blank">$1</a>');
-    
-    // Code blocks
-    html = html.replace(/```(\w+)?\n([\s\S]*?)```/gim, '<pre><code class="language-$1">$2</code></pre>');
-    
-    // Inline code
-    html = html.replace(/`([^`]+)`/gim, '<code>$1</code>');
-    
-    // Lists
-    html = html.replace(/^\s*-\s+(.*)$/gim, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    
-    // Line breaks
-    html = html.replace(/\n\n/g, '</p><p>');
-    html = '<p>' + html + '</p>';
-    
-    return html;
+
+    // Re-observe for animations
+    setTimeout(() => {
+        $$('.category-card.animate-in').forEach(el => {
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+            }, { threshold: 0.1 });
+            obs.observe(el);
+        });
+    }, 50);
 }
 
-// Show category list view
+// ========================================
+// Filter Buttons
+// ========================================
+function initFilters() {
+    $$('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            $$('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCategories(btn.dataset.filter);
+        });
+    });
+}
+
+// ========================================
+// Category View
+// ========================================
 function showCategoryView(categoryKey) {
-    console.log('Loading category:', categoryKey);
-    
-    if (!contentStructure) {
-        console.error('Content structure not loaded yet');
-        alert('Content is still loading. Please try again in a moment.');
-        return;
-    }
-    
+    if (!contentStructure) return;
     const category = contentStructure.categories[categoryKey];
-    if (!category) {
-        console.error('Category not found:', categoryKey);
-        return;
-    }
-    
-    console.log('Category data:', category);
-    
-    // Remove any existing content view first
-    const existingView = document.getElementById('content-view');
-    if (existingView) existingView.remove();
-    
-    const mainContent = document.querySelector('main') || document.body;
-    
-    // Hide main sections
-    document.querySelectorAll('section').forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Create breadcrumb and content container
-    const contentView = document.createElement('div');
-    contentView.id = 'content-view';
-    contentView.className = 'content-view';
+    if (!category) return;
+
+    mainContent.style.display = 'none';
+    contentView.style.display = 'block';
     contentView.innerHTML = `
         <div class="container">
             <div class="breadcrumb">
@@ -564,75 +356,54 @@ function showCategoryView(categoryKey) {
                 <i class="fas fa-chevron-right"></i>
                 <span>${category.name}</span>
             </div>
-            
-            <div class="category-header">
-                <div class="category-icon">
-                    <i class="fas ${category.icon}"></i>
-                </div>
+
+            <div class="cat-header">
+                <div class="cat-icon"><i class="fas ${category.icon}"></i></div>
                 <h1>${category.name}</h1>
                 <p>${category.description}</p>
             </div>
-            
-            <div class="writeups-grid">
-                ${category.writeups.map(writeup => `
-                    <div class="writeup-card" onclick="showWriteup('${categoryKey}', '${encodeURIComponent(writeup.path)}')">
-                        <div class="writeup-header">
-                            <h3>${writeup.title}</h3>
-                            <span class="difficulty ${writeup.difficulty.toLowerCase()}">${writeup.difficulty}</span>
+
+            <div class="writeups-grid stagger visible">
+                ${category.writeups.map(w => `
+                    <div class="writeup-card" onclick="showWriteup('${categoryKey}', '${encodePath(w.path)}')">
+                        <div class="writeup-card-header">
+                            <h3>${escapeHTML(w.title)}</h3>
+                            <span class="difficulty-badge ${w.difficulty.toLowerCase()}">${w.difficulty}</span>
                         </div>
-                        <p class="writeup-description">${writeup.description}</p>
-                        <div class="writeup-meta">
-                            <span class="category-badge">${writeup.category}</span>
-                            <span class="read-link">
-                                Read More <i class="fas fa-arrow-right"></i>
-                            </span>
+                        <p>${escapeHTML(w.description)}</p>
+                        <div class="writeup-card-footer">
+                            <span class="cat-badge">${escapeHTML(w.category)}</span>
+                            <span class="read-more">Read <i class="fas fa-arrow-right"></i></span>
                         </div>
                     </div>
                 `).join('')}
             </div>
         </div>
     `;
-    
-    mainContent.appendChild(contentView);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Show individual writeup
+// ========================================
+// Writeup View
+// ========================================
 async function showWriteup(categoryKey, encodedPath) {
-    const path = decodeURIComponent(encodedPath);
-    console.log('Loading writeup:', path);
-    
+    const path = decodePath(encodedPath);
+    const fetchUrl = path.split('/').map(s => encodeURIComponent(s)).join('/');
+
     try {
-        const response = await fetch(path);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const markdown = await response.text();
+        const resp = await fetch(fetchUrl);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const markdown = await resp.text();
         const html = markdownToHTML(markdown, path);
-        
+
         const category = contentStructure.categories[categoryKey];
         const writeup = category.writeups.find(w => w.path === path);
-        
-        if (!writeup) {
-            throw new Error('Writeup not found in category');
-        }
-        
-        const mainContent = document.querySelector('main') || document.body;
-        
-        // Remove existing content view
-        const existingView = document.getElementById('content-view');
-        if (existingView) existingView.remove();
-        
-        // Hide main sections
-        document.querySelectorAll('section').forEach(section => {
-            section.style.display = 'none';
-        });
-        
-        // Create writeup view
-        const writeupView = document.createElement('div');
-        writeupView.id = 'content-view';
-        writeupView.className = 'content-view writeup-view';
-        writeupView.innerHTML = `
+        if (!writeup) throw new Error('Writeup not found');
+
+        mainContent.style.display = 'none';
+        contentView.style.display = 'block';
+        contentView.innerHTML = `
             <div class="container">
                 <div class="breadcrumb">
                     <a href="#" onclick="returnToHome(); return false;">
@@ -643,16 +414,16 @@ async function showWriteup(categoryKey, encodedPath) {
                         ${category.name}
                     </a>
                     <i class="fas fa-chevron-right"></i>
-                    <span>${writeup.title}</span>
+                    <span>${escapeHTML(writeup.title)}</span>
                 </div>
-                
-                <article class="writeup-content">
+
+                <article class="writeup-article">
                     ${html}
                 </article>
-                
-                <div class="writeup-footer">
+
+                <div class="writeup-nav">
                     <button onclick="showCategoryView('${categoryKey}')" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to ${category.name}
+                        <i class="fas fa-arrow-left"></i> Back to ${escapeHTML(category.name)}
                     </button>
                     <button onclick="returnToHome()" class="btn btn-primary">
                         <i class="fas fa-home"></i> Home
@@ -660,46 +431,330 @@ async function showWriteup(categoryKey, encodedPath) {
                 </div>
             </div>
         `;
-        
-        mainContent.appendChild(writeupView);
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        // Add syntax highlighting if available
+
+        // Syntax highlighting
         if (typeof Prism !== 'undefined') {
             Prism.highlightAll();
         }
-    } catch (error) {
-        console.error('Error loading writeup:', error, 'Path:', path);
-        alert('Error loading content: ' + error.message + '\nPath: ' + path);
+
+        // Add copy buttons to code blocks
+        addCopyButtons();
+
+    } catch (err) {
+        console.error('Error loading writeup:', err);
+        contentView.innerHTML = `
+            <div class="container" style="text-align: center; padding-top: 200px;">
+                <h2 style="color: var(--text-primary); margin-bottom: 16px;">Failed to load content</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">${escapeHTML(err.message)}</p>
+                <button onclick="returnToHome()" class="btn btn-primary"><i class="fas fa-home"></i> Go Home</button>
+            </div>
+        `;
     }
 }
 
-// Return to home view
+// ========================================
+// Return to Home
+// ========================================
 function returnToHome() {
-    console.log('Returning to home');
-    const contentView = document.getElementById('content-view');
-    if (contentView) contentView.remove();
-    
-    document.querySelectorAll('section').forEach(section => {
-        section.style.display = '';
-    });
-    
+    contentView.style.display = 'none';
+    contentView.innerHTML = '';
+    mainContent.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Update project cards to use dynamic loading - REMOVED, using onclick in HTML
+// ========================================
+// Markdown Parser
+// ========================================
+function markdownToHTML(md, basePath = '') {
+    const dirPath = basePath.split('/').slice(0, -1).join('/');
+    let html = md;
 
-// Initialize content system
-async function initializeContentSystem() {
-    console.log('Initializing content system...');
-    await loadContentStructure();
-    console.log('Content structure loaded:', contentStructure);
+    // Normalize line endings
+    html = html.replace(/\r\n/g, '\n');
+
+    // Escape HTML entities (except in code blocks)
+    // We'll process code blocks first
+
+    // Fenced code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/gm, (match, lang, code) => {
+        const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const langClass = lang ? `language-${lang}` : '';
+        return `<pre><code class="${langClass}">${escaped}</code></pre>`;
+    });
+
+    // Images (before links)
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/gm, (match, alt, src) => {
+        let resolved = src;
+        if (!src.startsWith('http') && !src.startsWith('/')) {
+            if (src.includes('../')) {
+                const parts = src.split('/');
+                const base = dirPath.split('/').filter(Boolean);
+                parts.forEach(p => {
+                    if (p === '..') base.pop();
+                    else if (p !== '.') base.push(p);
+                });
+                resolved = base.join('/');
+            } else if (dirPath) {
+                resolved = dirPath + '/' + src;
+            }
+        }
+        return `<img src="${resolved}" alt="${escapeHTML(alt)}" loading="lazy" />`;
+    });
+
+    // Tables
+    html = html.replace(/^(\|.+\|)\n(\|[-:| ]+\|)\n((?:\|.+\|\n?)*)/gm, (match, header, sep, bodyStr) => {
+        const headers = header.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+        const rows = bodyStr.trim().split('\n').map(row => {
+            const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+            return `<tr>${cells}</tr>`;
+        }).join('');
+        return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+    });
+
+    // Headers
+    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Horizontal rules
+    html = html.replace(/^---+$/gm, '<hr>');
+
+    // Blockquotes
+    html = html.replace(/^>\s*(.+)$/gm, '<blockquote>$1</blockquote>');
+    // Merge consecutive blockquotes
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, '\n');
+
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Italic
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Strikethrough
+    html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+
+    // Inline code (after code blocks)
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+    // Unordered lists
+    html = html.replace(/^(\s*)[-*]\s+(.+)$/gm, '$1<li>$2</li>');
+
+    // Ordered lists
+    html = html.replace(/^(\s*)\d+\.\s+(.+)$/gm, '$1<li>$2</li>');
+
+    // Wrap consecutive li elements in ul/ol
+    html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+    // Paragraphs - wrap orphan text lines
+    const lines = html.split('\n');
+    const result = [];
+    let inPre = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.includes('<pre>')) inPre = true;
+        if (line.includes('</pre>')) { inPre = false; result.push(line); continue; }
+        if (inPre) { result.push(line); continue; }
+
+        if (line.trim() === '') {
+            result.push('');
+            continue;
+        }
+
+        // Don't wrap block elements
+        if (/^<(h[1-6]|ul|ol|li|table|thead|tbody|tr|th|td|pre|blockquote|hr|img|div)/.test(line.trim())) {
+            result.push(line);
+        } else if (line.trim().startsWith('</')) {
+            result.push(line);
+        } else {
+            result.push(`<p>${line}</p>`);
+        }
+    }
+
+    return result.join('\n');
 }
 
-// Call initialization
-initializeContentSystem();
+// ========================================
+// Copy Buttons for Code Blocks
+// ========================================
+function addCopyButtons() {
+    $$('.writeup-article pre').forEach(pre => {
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const code = pre.querySelector('code');
+            navigator.clipboard.writeText(code.textContent).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            });
+        });
+        pre.style.position = 'relative';
+        pre.appendChild(btn);
+    });
+}
 
+// ========================================
+// Utility Functions
+// ========================================
+function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Encode a file path preserving slashes
+function encodePath(p) {
+    return p.split('/').map(s => encodeURIComponent(s)).join('/');
+}
+
+// Decode path segments
+function decodePath(p) {
+    return p.split('/').map(s => decodeURIComponent(s)).join('/');
+}
+
+function debounce(fn, wait = 16) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), wait);
+    };
+}
+
+// ========================================
+// Smooth Scroll for Anchor Links
+// ========================================
+function initSmoothScroll() {
+    $$('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+
+            // If we're in content view, return home first
+            if (contentView.style.display === 'block') {
+                returnToHome();
+                // Wait a bit for DOM update, then scroll
+                setTimeout(() => {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        window.scrollTo({
+                            top: target.offsetTop - 64,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 100);
+                e.preventDefault();
+                closeMobileNav();
+                return;
+            }
+
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                window.scrollTo({
+                    top: target.offsetTop - 64,
+                    behavior: 'smooth'
+                });
+            }
+            closeMobileNav();
+        });
+    });
+}
+
+// ========================================
+// Keyboard Shortcuts
+// ========================================
+function initKeyboard() {
+    document.addEventListener('keydown', (e) => {
+        // Cmd/Ctrl + K for search
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            if (searchModal.classList.contains('active')) {
+                closeSearch();
+            } else {
+                openSearch();
+            }
+        }
+
+        // Escape
+        if (e.key === 'Escape') {
+            if (searchModal.classList.contains('active')) {
+                closeSearch();
+            }
+            closeMobileNav();
+        }
+    });
+}
+
+// ========================================
+// Console Easter Egg
+// ========================================
+function showConsoleMessage() {
+    console.log('%c🔒 f4zzie\'s Portfolio', 'font-size: 20px; color: #818cf8; font-weight: bold;');
+    console.log('%cExploring cybersecurity one challenge at a time', 'font-size: 13px; color: #9ca0ab;');
+    console.log('%cPress Ctrl+K to search notes!', 'font-size: 12px; color: #34d399;');
+}
+
+// ========================================
+// Initialize Everything
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initTypingEffect();
+    initAnimations();
+    initSmoothScroll();
+    initFilters();
+    initKeyboard();
+    showConsoleMessage();
+
+    // Event listeners
+    themeToggle.addEventListener('click', toggleTheme);
+    hamburger.addEventListener('click', toggleMobileNav);
+    searchToggle.addEventListener('click', openSearch);
+    searchInput.addEventListener('input', debounce(() => performSearch(searchInput.value), 200));
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    window.addEventListener('scroll', debounce(handleScroll, 10));
+
+    // Close mobile nav on outside click
+    document.addEventListener('click', (e) => {
+        if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
+            closeMobileNav();
+        }
+    });
+
+    // Load content
+    loadContentStructure();
+
+    // Initial scroll state
+    handleScroll();
+
+    // Trigger counter animation after a short delay (hero is immediately visible)
+    setTimeout(animateCounters, 500);
+
+    // Hash navigation on load
+    if (window.location.hash) {
+        setTimeout(() => {
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                window.scrollTo({ top: target.offsetTop - 64, behavior: 'smooth' });
+            }
+        }, 300);
+    }
+});
+
+// ========================================
 // Make functions globally available
+// ========================================
 window.showCategoryView = showCategoryView;
 window.showWriteup = showWriteup;
 window.returnToHome = returnToHome;
+window.closeSearch = closeSearch;
+window.openSearch = openSearch;
