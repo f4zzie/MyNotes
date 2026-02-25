@@ -81,6 +81,83 @@
           "category": "Crackme",
           "difficulty": "Medium",
           "description": "Solving a segfault-based crackme challenge"
+        },
+        {
+          "title": "Binary Exploitation Methodology",
+          "path": "RE/BINARY EXPLOITATION/BINARY EXPLOITATION METHODOLOGY.md",
+          "category": "Binary Exploitation",
+          "difficulty": "Intermediate",
+          "description": "Full methodology from recon to exploitation with decision trees"
+        },
+        {
+          "title": "Stack Overflow",
+          "path": "RE/BINARY EXPLOITATION/STACK OVERFLOW.md",
+          "category": "Binary Exploitation",
+          "difficulty": "Intermediate",
+          "description": "Comprehensive stack overflow exploitation techniques"
+        },
+        {
+          "title": "Format Strings",
+          "path": "RE/BINARY EXPLOITATION/FORMAT STRINGS.md",
+          "category": "Binary Exploitation",
+          "difficulty": "Intermediate",
+          "description": "Format string vulnerabilities: read, write, GOT overwrite"
+        },
+        {
+          "title": "ROP Fundamentals",
+          "path": "RE/BINARY EXPLOITATION/ROP/ROP FUNDAMENTALS.md",
+          "category": "Binary Exploitation",
+          "difficulty": "Advanced",
+          "description": "ROP techniques: ret2libc, ret2syscall, SROP, ret2csu"
+        },
+        {
+          "title": "Binary Protections & Bypasses",
+          "path": "RE/BINARY EXPLOITATION/PROTECTIONS/BINARY PROTECTIONS & BYPASSES.md",
+          "category": "Binary Exploitation",
+          "difficulty": "Intermediate",
+          "description": "NX, ASLR, PIE, canaries, RELRO — how they work and how to bypass"
+        },
+        {
+          "title": "Heap Exploitation",
+          "path": "RE/BINARY EXPLOITATION/HEAP/HEAP EXPLOITATION.md",
+          "category": "Binary Exploitation",
+          "difficulty": "Advanced",
+          "description": "Heap internals, bins, UAF, double free, tcache poisoning, House techniques"
+        },
+        {
+          "title": "Pwntools Template",
+          "path": "RE/BINARY EXPLOITATION/TOOLS & TEMPLATES/PWNTOOLS TEMPLATE.md",
+          "category": "Tools",
+          "difficulty": "Beginner",
+          "description": "Ready-to-use pwntools exploit template with snippets"
+        },
+        {
+          "title": "GDB & Debugging Tools",
+          "path": "RE/BINARY EXPLOITATION/TOOLS & TEMPLATES/GDB & DEBUGGING TOOLS.md",
+          "category": "Tools",
+          "difficulty": "Beginner",
+          "description": "GDB, pwndbg, ROPgadget, checksec, one_gadget reference"
+        },
+        {
+          "title": "Practice Platforms",
+          "path": "RE/BINARY EXPLOITATION/PRACTICE PLATFORMS/PRACTICE PLATFORMS.md",
+          "category": "Resources",
+          "difficulty": "Beginner",
+          "description": "Curated list of pwn, RE, and CTF practice platforms"
+        }
+      ]
+    },
+    "RESOURCES": {
+      "name": "Resources",
+      "icon": "fa-bookmark",
+      "description": "Curated hacking resources, tools, and learning materials",
+      "writeups": [
+        {
+          "title": "Hacking Resources & Bookmarks",
+          "path": "RESOURCES/HACKING RESOURCES.md",
+          "category": "Resources",
+          "difficulty": "Beginner",
+          "description": "Master list of tools, YouTube channels, wikis, and learning resources"
         }
       ]
     },

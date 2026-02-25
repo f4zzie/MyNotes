@@ -1,12 +1,12 @@
-# Cybersecurity Portfolio - TeddyMbithi
+# Cybersecurity Portfolio - f4zzie
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?style=for-the-badge&logo=github)](https://TeddyMbithi.github.io/MyNotes/)
-[![CTF](https://img.shields.io/badge/CTF-Writeups-green?style=for-the-badge)](https://TeddyMbithi.github.io/MyNotes/)
-[![Malware Analysis](https://img.shields.io/badge/Malware-Analysis-red?style=for-the-badge)](https://TeddyMbithi.github.io/MyNotes/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?style=for-the-badge&logo=github)](https://f4zzie.github.io/MyNotes/)
+[![CTF](https://img.shields.io/badge/CTF-Writeups-green?style=for-the-badge)](https://f4zzie.github.io/MyNotes/)
+[![Malware Analysis](https://img.shields.io/badge/Malware-Analysis-red?style=for-the-badge)](https://f4zzie.github.io/MyNotes/)
 
 A modern, interactive portfolio website showcasing CTF writeups, reverse engineering notes, and malware analysis.
 
-**🌐 View the live portfolio:** [https://TeddyMbithi.github.io/MyNotes/](https://TeddyMbithi.github.io/MyNotes/)
+**🌐 View the live portfolio:** [https://f4zzie.github.io/MyNotes/](https://f4zzie.github.io/MyNotes/)
 
 ## � Repository Structure
 
@@ -56,8 +56,8 @@ MyNotes/
 
 ## 📧 Contact
 
-- **GitHub:** [@TeddyMbithi](https://github.com/f4zzie)
-- **Website:** [https://TeddyMbithi.github.io/MyNotes/](https://f4zzie.github.io/MyNotes/)
+- **GitHub:** [@f4zzie](https://github.com/f4zzie)
+- **Website:** [https://f4zzie.github.io/MyNotes/](https://f4zzie.github.io/MyNotes/)
 
 ---
 

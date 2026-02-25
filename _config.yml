@@ -1,9 +1,9 @@
 # GitHub Pages Configuration
 # Using custom HTML/CSS/JS instead of Jekyll theme
-title: TeddyMbithi | Cybersecurity Portfolio
+title: f4zzie | Cybersecurity Portfolio
 description: Modern portfolio showcasing CTF writeups, reverse engineering, and malware analysis
-author: TeddyMbithi
-url: https://TeddyMbithi.github.io
+author: f4zzie
+url: https://f4zzie.github.io
 baseurl: /MyNotes
 
 # Disable Jekyll processing for custom HTML site

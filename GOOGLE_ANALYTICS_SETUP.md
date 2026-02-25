@@ -27,7 +27,7 @@
 ## Step 4: Set Up Data Stream
 
 1. Choose **"Web"**
-2. Website URL: `https://TeddyMbithi.github.io`
+2. Website URL: `https://f4zzie.github.io`
 3. Stream name: `MyNotes Website`
 4. Click **"Create stream"**
 

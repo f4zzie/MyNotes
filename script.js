@@ -381,8 +381,8 @@ function addCopyButtons() {
 // ========================================
 // Console Easter Egg
 // ========================================
-console.log('%c👾 Welcome to TeddyMbithi\'s Portfolio!', 'font-size: 20px; color: #3498db; font-weight: bold;');
-console.log('%cInterested in cybersecurity? Check out my GitHub: https://github.com/TeddyMbithi', 'font-size: 14px; color: #2ecc71;');
+console.log('%c👾 Welcome to f4zzie\'s Portfolio!', 'font-size: 20px; color: #3498db; font-weight: bold;');
+console.log('%cInterested in cybersecurity? Check out my GitHub: https://github.com/f4zzie', 'font-size: 14px; color: #2ecc71;');
 console.log('%cPress "T" to toggle dark/light theme!', 'font-size: 12px; color: #e74c3c;');
 
 // ========================================
