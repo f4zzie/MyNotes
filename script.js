@@ -1,760 +1,506 @@
-// ========================================
-// Global State
-// ========================================
-let contentStructure = null;
-const TYPED_STRINGS = [
-    'Cybersecurity Enthusiast',
-    'CTF Player',
-    'Malware Analyst',
-    'Reverse Engineer',
-    'Binary Exploiter'
-];
+'use strict';
 
-// ========================================
-// DOM Elements
-// ========================================
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
+// ============================================================
+// State
+// ============================================================
+var data = null;
 
-const navbar = $('#navbar');
-const hamburger = $('#hamburger');
-const navMenu = $('#nav-menu');
-const themeToggle = $('#theme-toggle');
-const searchToggle = $('#search-toggle');
-const searchModal = $('#search-modal');
-const searchInput = $('#search-input');
-const searchResults = $('#search-results');
-const backToTop = $('#back-to-top');
-const scrollProgress = $('#scroll-progress');
-const mainContent = $('#main-content');
-const contentView = $('#content-view');
+// ============================================================
+// DOM refs
+// ============================================================
+var $progress  = document.getElementById('progress');
+var $nav       = document.getElementById('main-nav');
+var $hamburger = document.getElementById('hamburger');
+var $themeBtn  = document.getElementById('theme-btn');
+var $searchBtn = document.getElementById('search-btn');
+var $searchMod = document.getElementById('search-modal');
+var $searchIn  = document.getElementById('search-input');
+var $searchOut = document.getElementById('search-out');
+var $homeView  = document.getElementById('home-view');
+var $pageView  = document.getElementById('page-view');
+var $groups    = document.getElementById('groups');
+var $backTop   = document.getElementById('back-top');
 
-// ========================================
-// Theme Management
-// ========================================
-function initTheme() {
-    const saved = localStorage.getItem('theme');
-    const body = document.body;
-    const icon = themeToggle.querySelector('i');
+// ============================================================
+// Theme
+// ============================================================
+(function() {
+    var saved = localStorage.getItem('theme');
+    document.body.className = (saved === 'light') ? 'light' : 'dark';
+    syncThemeIcon();
+})();
 
-    if (saved === 'light') {
-        body.classList.remove('dark-theme');
-        icon.className = 'fas fa-moon';
-    } else {
-        body.classList.add('dark-theme');
-        icon.className = 'fas fa-sun';
-        localStorage.setItem('theme', 'dark');
-    }
+function syncThemeIcon() {
+    var i = $themeBtn.querySelector('i');
+    i.className = document.body.classList.contains('dark')
+        ? 'fas fa-circle-half-stroke'
+        : 'fas fa-moon';
 }
 
-function toggleTheme() {
-    const body = document.body;
-    const icon = themeToggle.querySelector('i');
-    body.classList.toggle('dark-theme');
-
-    if (body.classList.contains('dark-theme')) {
-        icon.className = 'fas fa-sun';
-        localStorage.setItem('theme', 'dark');
-    } else {
-        icon.className = 'fas fa-moon';
+$themeBtn.addEventListener('click', function() {
+    if (document.body.classList.contains('dark')) {
+        document.body.className = 'light';
         localStorage.setItem('theme', 'light');
+    } else {
+        document.body.className = 'dark';
+        localStorage.setItem('theme', 'dark');
     }
+    syncThemeIcon();
+});
+
+// ============================================================
+// Mobile nav
+// ============================================================
+$hamburger.addEventListener('click', function() {
+    $hamburger.classList.toggle('open');
+    $nav.classList.toggle('open');
+});
+
+document.addEventListener('click', function(e) {
+    if (!$hamburger.contains(e.target) && !$nav.contains(e.target)) {
+        $hamburger.classList.remove('open');
+        $nav.classList.remove('open');
+    }
+});
+
+function closeNav() {
+    $hamburger.classList.remove('open');
+    $nav.classList.remove('open');
 }
 
-// ========================================
-// Mobile Navigation
-// ========================================
-function toggleMobileNav() {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
-}
+// ============================================================
+// Scroll progress + back-to-top
+// ============================================================
+window.addEventListener('scroll', function() {
+    var scrolled = window.scrollY;
+    var total = document.documentElement.scrollHeight - window.innerHeight;
+    $progress.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
+    if (scrolled > 280) {
+        $backTop.classList.remove('hidden');
+    } else {
+        $backTop.classList.add('hidden');
+    }
+});
 
-function closeMobileNav() {
-    hamburger.classList.remove('active');
-    navMenu.classList.remove('active');
-}
+$backTop.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
-// ========================================
-// Scroll Handling
-// ========================================
-function handleScroll() {
-    const scrollY = window.scrollY;
-
-    // Navbar scroll effect
-    navbar.classList.toggle('scrolled', scrollY > 20);
-
-    // Progress bar
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
-    scrollProgress.style.width = progress + '%';
-
-    // Back to top
-    backToTop.classList.toggle('visible', scrollY > 400);
-
-    // Active nav link
-    highlightActiveNav();
-}
-
-function highlightActiveNav() {
-    const scrollPos = window.scrollY + 120;
-    $$('section[id]').forEach(section => {
-        const top = section.offsetTop;
-        const height = section.offsetHeight;
-        const id = section.getAttribute('id');
-        const link = $(`.nav-link[href="#${id}"]`);
-        if (link) {
-            if (scrollPos >= top && scrollPos < top + height) {
-                $$('.nav-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-            }
-        }
-    });
-}
-
-// ========================================
+// ============================================================
 // Search
-// ========================================
+// ============================================================
+$searchBtn.addEventListener('click', openSearch);
+
 function openSearch() {
-    searchModal.classList.add('active');
-    searchInput.value = '';
-    searchInput.focus();
+    $searchMod.classList.remove('hidden');
+    $searchIn.focus();
+    $searchIn.value = '';
+    $searchOut.innerHTML = '<div class="search-empty">Start typing to search writeups...</div>';
     document.body.style.overflow = 'hidden';
-    showSearchHint();
 }
 
-function closeSearch() {
-    searchModal.classList.remove('active');
+window.closeSearch = function() {
+    $searchMod.classList.add('hidden');
     document.body.style.overflow = '';
-}
+};
 
-function showSearchHint() {
-    searchResults.innerHTML = `
-        <div class="search-hint">
-            <i class="fas fa-lightbulb"></i>
-            <p>Type to search through all notes and writeups</p>
-        </div>
-    `;
-}
-
-function performSearch(query) {
-    if (!contentStructure || !query.trim()) {
-        showSearchHint();
+$searchIn.addEventListener('input', function() {
+    var q = $searchIn.value.trim().toLowerCase();
+    if (!q || !data) {
+        $searchOut.innerHTML = '<div class="search-empty">Start typing to search writeups...</div>';
         return;
     }
 
-    const q = query.toLowerCase();
-    const results = [];
-
-    Object.entries(contentStructure.categories).forEach(([key, cat]) => {
-        cat.writeups.forEach(w => {
-            const searchStr = `${w.title} ${w.description} ${w.category} ${w.difficulty} ${cat.name}`.toLowerCase();
-            if (searchStr.includes(q)) {
-                results.push({ ...w, categoryKey: key, categoryName: cat.name, icon: cat.icon, encodedPath: encodePath(w.path) });
+    var hits = [];
+    Object.keys(data.categories).forEach(function(key) {
+        var cat = data.categories[key];
+        cat.writeups.forEach(function(w) {
+            var txt = (w.title + ' ' + w.description + ' ' + cat.name + ' ' + w.category).toLowerCase();
+            if (txt.includes(q)) {
+                hits.push({ title: w.title, desc: w.description, catKey: key, catName: cat.name, icon: cat.icon, path: w.path, diff: w.difficulty });
             }
         });
     });
 
-    if (results.length === 0) {
-        searchResults.innerHTML = `
-            <div class="search-hint">
-                <i class="fas fa-search"></i>
-                <p>No results found for "${escapeHTML(query)}"</p>
-            </div>
-        `;
+    if (!hits.length) {
+        $searchOut.innerHTML = '<div class="search-empty">No results for \u201c' + esc(q) + '\u201d</div>';
         return;
     }
 
-    searchResults.innerHTML = results.map(r => `
-        <div class="search-result-item" onclick="closeSearch(); showWriteup('${r.categoryKey}', '${r.encodedPath}')">
-            <div class="result-icon"><i class="fas ${r.icon}"></i></div>
-            <div class="result-info">
-                <div class="result-title">${escapeHTML(r.title)}</div>
-                <div class="result-meta">${escapeHTML(r.categoryName)} &bull; ${escapeHTML(r.difficulty)}</div>
-            </div>
-        </div>
-    `).join('');
-}
+    $searchOut.innerHTML = hits.map(function(h) {
+        return '<div class="s-hit" onclick="closeSearch(); showWriteup(\'' + h.catKey + '\', \'' + enc(h.path) + '\')">' +
+            '<div class="s-hit-icon"><i class="fas ' + esc(h.icon) + '"></i></div>' +
+            '<div><div class="s-hit-title">' + esc(h.title) + '</div>' +
+            '<div class="s-hit-sub">' + esc(h.catName) + ' \u00B7 ' + esc(h.diff) + '</div></div>' +
+            '</div>';
+    }).join('');
+});
 
-// ========================================
-// Typing Effect
-// ========================================
-function initTypingEffect() {
-    const el = $('.typed-text');
-    if (!el) return;
-
-    let stringIdx = 0;
-    let charIdx = 0;
-    let isDeleting = false;
-    let timeout;
-
-    function type() {
-        const current = TYPED_STRINGS[stringIdx];
-        if (isDeleting) {
-            el.textContent = current.substring(0, charIdx--);
-            timeout = charIdx < 0 ? 500 : 40;
-            if (charIdx < 0) {
-                isDeleting = false;
-                stringIdx = (stringIdx + 1) % TYPED_STRINGS.length;
-            }
-        } else {
-            el.textContent = current.substring(0, charIdx++);
-            timeout = charIdx > current.length ? 2000 : 80;
-            if (charIdx > current.length) {
-                isDeleting = true;
-            }
-        }
-        setTimeout(type, timeout);
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (!$searchMod.classList.contains('hidden')) window.closeSearch();
+        closeNav();
     }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        $searchMod.classList.contains('hidden') ? openSearch() : window.closeSearch();
+    }
+});
 
-    setTimeout(type, 1000);
+// ============================================================
+// Date helper — simulated, working back from Mar 7, 2026
+// ============================================================
+function makeDate(idx) {
+    var d = new Date(2026, 2, 7);
+    d.setDate(d.getDate() - idx * 6);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-// ========================================
-// Counter Animation
-// ========================================
-function animateCounters() {
-    $$('.stat-number[data-count]').forEach(el => {
-        const target = parseInt(el.dataset.count);
-        const duration = 1500;
-        const startTime = performance.now();
+// ============================================================
+// Badge + difficulty class maps
+// ============================================================
+var BADGE_MAP = {
+    HTB: 'b-htb',
+    THM: 'b-thm',
+    RE: 'b-re',
+    MALWARE: 'b-malware',
+    CYBERSTUDENTS: 'b-cyberstudents',
+    RESOURCES: 'b-resources'
+};
 
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.round(target * eased) + '+';
-            if (progress < 1) requestAnimationFrame(update);
-        }
+var TYPE_MAP = {
+    HTB: 'CTF',
+    THM: 'CTF',
+    CYBERSTUDENTS: 'CTF',
+    RE: 'NOTE',
+    MALWARE: 'NOTE',
+    RESOURCES: 'NOTE'
+};
 
-        requestAnimationFrame(update);
-    });
+function diffClass(d) {
+    d = d.toLowerCase();
+    if (d === 'easy' || d === 'beginner') return 'd-easy';
+    if (d === 'hard' || d === 'advanced') return 'd-hard';
+    return 'd-med';
 }
 
-// ========================================
-// Intersection Observer for Animations
-// ========================================
-function initAnimations() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-
-                // Trigger counters when hero stats become visible
-                if (entry.target.querySelector('.stat-number')) {
-                    animateCounters();
-                }
-            }
-        });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-    $$('.animate-in, .stagger').forEach(el => observer.observe(el));
+function readTime(title) {
+    return Math.max(3, Math.min(10, title.split(/\s+/).length + 2));
 }
 
-// ========================================
-// Content Structure Loading
-// ========================================
-async function loadContentStructure() {
+// ============================================================
+// Render a single post-item
+// ============================================================
+function postItem(w, idx, catKey, catName) {
+    var bc = BADGE_MAP[catKey] || 'b-default';
+    var dc = diffClass(w.difficulty);
+    var t = TYPE_MAP[catKey] || 'NOTE';
+    var tc = (t === 'CTF') ? 't-ctf' : 't-note';
+    return '<article class="post-item" onclick="showWriteup(\'' + catKey + '\', \'' + enc(w.path) + '\')">' +
+        '<div class="p-badges">' +
+            '<span class="badge ' + bc + '">' + esc(catName).toUpperCase() + '</span>' +
+            '<span class="type ' + tc + '">' + t + '</span>' +
+            '<span class="diff ' + dc + '">' + esc(w.difficulty) + '</span>' +
+        '</div>' +
+        '<p class="post-title">' + esc(w.title) + '</p>' +
+        '<p class="post-desc">' + esc(w.description) + '</p>' +
+        '<div class="post-meta">' +
+            '<span>' + makeDate(idx) + '</span>' +
+            '<span class="sep">\u00B7</span>' +
+            '<span>' + readTime(w.title) + ' min read</span>' +
+        '</div>' +
+    '</article>';
+}
+
+// ============================================================
+// Load content-structure.json
+// ============================================================
+async function loadData() {
     try {
-        const resp = await fetch('content-structure.json');
-        contentStructure = await resp.json();
-        renderCategories();
-    } catch (err) {
-        console.error('Failed to load content structure:', err);
+        var r = await fetch('content-structure.json');
+        data = await r.json();
+        renderGroups();
+    } catch(e) {
+        console.error('Failed to load content:', e);
     }
 }
 
-// ========================================
-// Render Categories Grid
-// ========================================
-function renderCategories(filterKey = 'all') {
-    if (!contentStructure) return;
-
-    const grid = $('#categories-grid');
-    if (!grid) return;
-
-    const entries = Object.entries(contentStructure.categories);
-    const filtered = filterKey === 'all'
-        ? entries
-        : entries.filter(([key]) => key === filterKey);
-
-    grid.innerHTML = '';
-
-    filtered.forEach(([key, cat]) => {
-        const diffs = [...new Set(cat.writeups.map(w => w.difficulty.toLowerCase()))];
-        const tags = [...new Set(cat.writeups.flatMap(w => [w.category]))].slice(0, 4);
-
-        const card = document.createElement('div');
-        card.className = 'category-card animate-in';
-        card.setAttribute('data-category', key);
-        card.onclick = () => showCategoryView(key);
-
-        card.innerHTML = `
-            <div class="category-card-header">
-                <div class="category-card-icon"><i class="fas ${cat.icon}"></i></div>
-                <div>
-                    <h3>${cat.name}</h3>
-                    <span class="note-count">${cat.writeups.length} note${cat.writeups.length !== 1 ? 's' : ''}</span>
-                </div>
-            </div>
-            <p>${cat.description}</p>
-            <div class="category-card-tags">
-                ${tags.map(t => `<span class="mini-tag">${escapeHTML(t)}</span>`).join('')}
-            </div>
-            <div class="category-card-footer">
-                <div class="difficulty-badges">
-                    ${diffs.includes('beginner') || diffs.includes('easy') ? '<span class="diff-dot easy" title="Beginner"></span>' : ''}
-                    ${diffs.includes('intermediate') || diffs.includes('medium') ? '<span class="diff-dot medium" title="Intermediate"></span>' : ''}
-                    ${diffs.includes('advanced') || diffs.includes('hard') ? '<span class="diff-dot hard" title="Advanced"></span>' : ''}
-                </div>
-                <span class="view-link">Browse <i class="fas fa-arrow-right"></i></span>
-            </div>
-        `;
-
-        grid.appendChild(card);
-    });
-
-    // Re-observe for animations
-    setTimeout(() => {
-        $$('.category-card.animate-in').forEach(el => {
-            const obs = new IntersectionObserver((entries) => {
-                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-            }, { threshold: 0.1 });
-            obs.observe(el);
-        });
-    }, 50);
-}
-
-// ========================================
-// Filter Buttons
-// ========================================
-function initFilters() {
-    $$('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            $$('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderCategories(btn.dataset.filter);
+function flatPosts() {
+    var out = [], i = 0;
+    Object.keys(data.categories).forEach(function(key) {
+        var cat = data.categories[key];
+        cat.writeups.forEach(function(w) {
+            out.push(Object.assign({}, w, { catKey: key, catName: cat.name, idx: i++ }));
         });
     });
+    return out;
 }
 
-// ========================================
-// Category View
-// ========================================
-function showCategoryView(categoryKey) {
-    if (!contentStructure) return;
-    const category = contentStructure.categories[categoryKey];
-    if (!category) return;
+function renderGroups() {
+    var html = '';
+    var globalIdx = 0;
+    Object.keys(data.categories).forEach(function(key) {
+        var cat = data.categories[key];
+        if (!cat.writeups.length) return;
+        html += '<div class="cat-group">' +
+            '<div class="cat-group-head">' +
+                '<h2 class="cat-group-label">' + esc(cat.name) + '</h2>' +
+                '<a href="#" class="cat-group-all" onclick="showCategory(\'' + key + '\'); return false;">View all &rarr;</a>' +
+            '</div>';
+        html += postItem(cat.writeups[0], globalIdx++, key, cat.name);
+        globalIdx += cat.writeups.length - 1;
+        html += '</div>';
+    });
+    $groups.innerHTML = html;
+}
 
-    mainContent.style.display = 'none';
-    contentView.style.display = 'block';
-    contentView.innerHTML = `
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="#" onclick="returnToHome(); return false;">
-                    <i class="fas fa-home"></i> Home
-                </a>
-                <i class="fas fa-chevron-right"></i>
-                <span>${category.name}</span>
-            </div>
-
-            <div class="cat-header">
-                <div class="cat-icon"><i class="fas ${category.icon}"></i></div>
-                <h1>${category.name}</h1>
-                <p>${category.description}</p>
-            </div>
-
-            <div class="writeups-grid stagger visible">
-                ${category.writeups.map(w => `
-                    <div class="writeup-card" onclick="showWriteup('${categoryKey}', '${encodePath(w.path)}')">
-                        <div class="writeup-card-header">
-                            <h3>${escapeHTML(w.title)}</h3>
-                            <span class="difficulty-badge ${w.difficulty.toLowerCase()}">${w.difficulty}</span>
-                        </div>
-                        <p>${escapeHTML(w.description)}</p>
-                        <div class="writeup-card-footer">
-                            <span class="cat-badge">${escapeHTML(w.category)}</span>
-                            <span class="read-more">Read <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-
+// ============================================================
+// Page transitions
+// ============================================================
+function showHomePage() {
+    $homeView.classList.remove('hidden');
+    $pageView.classList.add('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ========================================
-// Writeup View
-// ========================================
-async function showWriteup(categoryKey, encodedPath) {
-    const path = decodePath(encodedPath);
-    const fetchUrl = path.split('/').map(s => encodeURIComponent(s)).join('/');
-
-    try {
-        const resp = await fetch(fetchUrl);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const markdown = await resp.text();
-        const html = markdownToHTML(markdown, path);
-
-        const category = contentStructure.categories[categoryKey];
-        const writeup = category.writeups.find(w => w.path === path);
-        if (!writeup) throw new Error('Writeup not found');
-
-        mainContent.style.display = 'none';
-        contentView.style.display = 'block';
-        contentView.innerHTML = `
-            <div class="container">
-                <div class="breadcrumb">
-                    <a href="#" onclick="returnToHome(); return false;">
-                        <i class="fas fa-home"></i> Home
-                    </a>
-                    <i class="fas fa-chevron-right"></i>
-                    <a href="#" onclick="showCategoryView('${categoryKey}'); return false;">
-                        ${category.name}
-                    </a>
-                    <i class="fas fa-chevron-right"></i>
-                    <span>${escapeHTML(writeup.title)}</span>
-                </div>
-
-                <article class="writeup-article">
-                    ${html}
-                </article>
-
-                <div class="writeup-nav">
-                    <button onclick="showCategoryView('${categoryKey}')" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to ${escapeHTML(category.name)}
-                    </button>
-                    <button onclick="returnToHome()" class="btn btn-primary">
-                        <i class="fas fa-home"></i> Home
-                    </button>
-                </div>
-            </div>
-        `;
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Syntax highlighting
-        if (typeof Prism !== 'undefined') {
-            Prism.highlightAll();
-        }
-
-        // Add copy buttons to code blocks
-        addCopyButtons();
-
-    } catch (err) {
-        console.error('Error loading writeup:', err);
-        contentView.innerHTML = `
-            <div class="container" style="text-align: center; padding-top: 200px;">
-                <h2 style="color: var(--text-primary); margin-bottom: 16px;">Failed to load content</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">${escapeHTML(err.message)}</p>
-                <button onclick="returnToHome()" class="btn btn-primary"><i class="fas fa-home"></i> Go Home</button>
-            </div>
-        `;
-    }
-}
-
-// ========================================
-// Return to Home
-// ========================================
-function returnToHome() {
-    contentView.style.display = 'none';
-    contentView.innerHTML = '';
-    mainContent.style.display = 'block';
+function showPage(html) {
+    $homeView.classList.add('hidden');
+    $pageView.classList.remove('hidden');
+    $pageView.innerHTML = html;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ========================================
-// Markdown Parser
-// ========================================
-function markdownToHTML(md, basePath = '') {
-    const dirPath = basePath.split('/').slice(0, -1).join('/');
-    let html = md;
-
-    // Normalize line endings
-    html = html.replace(/\r\n/g, '\n');
-
-    // Escape HTML entities (except in code blocks)
-    // We'll process code blocks first
-
-    // Fenced code blocks
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/gm, (match, lang, code) => {
-        const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const langClass = lang ? `language-${lang}` : '';
-        return `<pre><code class="${langClass}">${escaped}</code></pre>`;
+// Breadcrumb helper
+function trail(crumbs, current) {
+    var h = '<div class="trail">';
+    crumbs.forEach(function(c) {
+        h += '<a href="#" onclick="' + c.fn + '; return false;">' + esc(c.label) + '</a>';
+        h += '<i class="fas fa-chevron-right sep"></i>';
     });
-
-    // Images (before links)
-    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/gm, (match, alt, src) => {
-        let resolved = src;
-        if (!src.startsWith('http') && !src.startsWith('/')) {
-            if (src.includes('../')) {
-                const parts = src.split('/');
-                const base = dirPath.split('/').filter(Boolean);
-                parts.forEach(p => {
-                    if (p === '..') base.pop();
-                    else if (p !== '.') base.push(p);
-                });
-                resolved = base.join('/');
-            } else if (dirPath) {
-                resolved = dirPath + '/' + src;
-            }
-        }
-        return `<img src="${resolved}" alt="${escapeHTML(alt)}" loading="lazy" />`;
-    });
-
-    // Tables
-    html = html.replace(/^(\|.+\|)\n(\|[-:| ]+\|)\n((?:\|.+\|\n?)*)/gm, (match, header, sep, bodyStr) => {
-        const headers = header.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
-        const rows = bodyStr.trim().split('\n').map(row => {
-            const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
-            return `<tr>${cells}</tr>`;
-        }).join('');
-        return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
-    });
-
-    // Headers
-    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
-    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-    // Horizontal rules
-    html = html.replace(/^---+$/gm, '<hr>');
-
-    // Blockquotes
-    html = html.replace(/^>\s*(.+)$/gm, '<blockquote>$1</blockquote>');
-    // Merge consecutive blockquotes
-    html = html.replace(/<\/blockquote>\n<blockquote>/g, '\n');
-
-    // Bold
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-    // Italic
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    // Strikethrough
-    html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
-
-    // Inline code (after code blocks)
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-    // Unordered lists
-    html = html.replace(/^(\s*)[-*]\s+(.+)$/gm, '$1<li>$2</li>');
-
-    // Ordered lists
-    html = html.replace(/^(\s*)\d+\.\s+(.+)$/gm, '$1<li>$2</li>');
-
-    // Wrap consecutive li elements in ul/ol
-    html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-
-    // Paragraphs - wrap orphan text lines
-    const lines = html.split('\n');
-    const result = [];
-    let inPre = false;
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        if (line.includes('<pre>')) inPre = true;
-        if (line.includes('</pre>')) { inPre = false; result.push(line); continue; }
-        if (inPre) { result.push(line); continue; }
-
-        if (line.trim() === '') {
-            result.push('');
-            continue;
-        }
-
-        // Don't wrap block elements
-        if (/^<(h[1-6]|ul|ol|li|table|thead|tbody|tr|th|td|pre|blockquote|hr|img|div)/.test(line.trim())) {
-            result.push(line);
-        } else if (line.trim().startsWith('</')) {
-            result.push(line);
-        } else {
-            result.push(`<p>${line}</p>`);
-        }
-    }
-
-    return result.join('\n');
+    h += '<span>' + esc(current) + '</span></div>';
+    return h;
 }
 
-// ========================================
-// Copy Buttons for Code Blocks
-// ========================================
-function addCopyButtons() {
-    $$('.writeup-article pre').forEach(pre => {
-        const btn = document.createElement('button');
+// ============================================================
+// Navigation — all exposed on window for inline onclick
+// ============================================================
+window.goHome = function() {
+    closeNav();
+    showHomePage();
+};
+
+window.showAll = function() {
+    closeNav();
+    if (!data) return;
+    var all = flatPosts();
+    showPage(
+        '<div class="pg">' +
+            trail([{ label: 'Home', fn: 'goHome()' }], 'All Posts') +
+            '<h1 class="listing-title">All Posts</h1>' +
+            '<p class="listing-sub">' + all.length + ' articles</p>' +
+            all.map(function(p) { return postItem(p, p.idx, p.catKey, p.catName); }).join('') +
+        '</div>'
+    );
+};
+
+window.showCategory = function(key) {
+    closeNav();
+    if (!data) return;
+    var cat = data.categories[key];
+    if (!cat) return;
+    var i = 0;
+    showPage(
+        '<div class="pg">' +
+            trail([{ label: 'Home', fn: 'goHome()' }], cat.name) +
+            '<h1 class="listing-title">' + esc(cat.name) + '</h1>' +
+            '<p class="listing-sub">' + esc(cat.description) + '</p>' +
+            cat.writeups.map(function(w) { return postItem(w, i++, key, cat.name); }).join('') +
+        '</div>'
+    );
+};
+
+window.showAbout = function() {
+    closeNav();
+    showPage(
+        '<div class="pg">' +
+            trail([{ label: 'Home', fn: 'goHome()' }], 'Whoami') +
+            '<div class="about-block">' +
+                '<h1>$ whoami</h1>' +
+                '<p>Reverse engineering, binary exploitation, and malware analysis. Documenting everything I pick up along the way.</p>' +
+                '<p>Most of my time goes into HackTheBox, TryHackMe, and CyberStudents \u2014 pulling apart binaries, writing exploits, figuring out how things break. These aren\u2019t polished tutorials. They\u2019re real notes from real practice.</p>' +
+                '<p>Focus: RE \u00B7 Malware Analysis \u00B7 Binary Exploitation \u00B7 CTF</p>' +
+                '<div class="about-nums">' +
+                    '<div class="about-num"><strong>30+</strong><span>Notes</span></div>' +
+                    '<div class="about-num"><strong>6</strong><span>Categories</span></div>' +
+                    '<div class="about-num"><strong>3</strong><span>Platforms</span></div>' +
+                '</div>' +
+            '</div>' +
+        '</div>'
+    );
+};
+
+window.showWriteup = async function(catKey, encodedPath) {
+    var path = dec(encodedPath);
+    var cat = data && data.categories[catKey];
+    var writeup = cat && cat.writeups.find(function(w) { return w.path === path; });
+
+    try {
+        var fetchUrl = path.split('/').map(encodeURIComponent).join('/');
+        var r = await fetch(fetchUrl);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        var md = await r.text();
+        var html = parseMarkdown(md, path);
+
+        showPage(
+            '<div class="pg">' +
+                trail(
+                    [
+                        { label: 'Home', fn: 'goHome()' },
+                        { label: cat.name, fn: 'showCategory(\'' + catKey + '\')' }
+                    ],
+                    writeup ? writeup.title : 'Writeup'
+                ) +
+                '<div class="wu">' + html + '</div>' +
+                '<div class="wu-nav">' +
+                    '<button class="btn-nav" onclick="showCategory(\'' + catKey + '\')"><i class="fas fa-arrow-left"></i> ' + esc(cat.name) + '</button>' +
+                    '<button class="btn-nav" onclick="goHome()"><i class="fas fa-home"></i> Home</button>' +
+                '</div>' +
+            '</div>'
+        );
+
+        if (window.Prism) Prism.highlightAll();
+        addCopyBtns();
+
+    } catch(e) {
+        showPage(
+            '<div class="pg" style="padding-top:48px;">' +
+                '<p style="color:var(--text-dim);margin-bottom:12px;">Could not load: ' + esc(e.message) + '</p>' +
+                '<button class="btn-nav" onclick="goHome()">\u2190 Home</button>' +
+            '</div>'
+        );
+    }
+};
+
+// ============================================================
+// Copy buttons for code blocks in writeups
+// ============================================================
+function addCopyBtns() {
+    document.querySelectorAll('.wu pre').forEach(function(pre) {
+        if (pre.querySelector('.copy-btn')) return;
+        var btn = document.createElement('button');
         btn.className = 'copy-btn';
-        btn.textContent = 'Copy';
-        btn.addEventListener('click', (e) => {
+        btn.textContent = 'copy';
+        btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const code = pre.querySelector('code');
-            navigator.clipboard.writeText(code.textContent).then(() => {
-                btn.textContent = 'Copied!';
-                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            var code = pre.querySelector('code');
+            navigator.clipboard.writeText(code ? code.textContent : pre.textContent).then(function() {
+                btn.textContent = 'copied!';
+                setTimeout(function() { btn.textContent = 'copy'; }, 1800);
             });
         });
-        pre.style.position = 'relative';
         pre.appendChild(btn);
     });
 }
 
-// ========================================
-// Utility Functions
-// ========================================
-function escapeHTML(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
+// ============================================================
+// Markdown parser
+// ============================================================
+function parseMarkdown(md, filePath) {
+    var dir = filePath ? filePath.split('/').slice(0, -1).join('/') : '';
+    var h = md.replace(/\r\n/g, '\n');
 
-// Encode a file path preserving slashes
-function encodePath(p) {
-    return p.split('/').map(s => encodeURIComponent(s)).join('/');
-}
-
-// Decode path segments
-function decodePath(p) {
-    return p.split('/').map(s => decodeURIComponent(s)).join('/');
-}
-
-function debounce(fn, wait = 16) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), wait);
-    };
-}
-
-// ========================================
-// Smooth Scroll for Anchor Links
-// ========================================
-function initSmoothScroll() {
-    $$('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            const href = this.getAttribute('href');
-            if (href === '#') return;
-
-            // If we're in content view, return home first
-            if (contentView.style.display === 'block') {
-                returnToHome();
-                // Wait a bit for DOM update, then scroll
-                setTimeout(() => {
-                    const target = document.querySelector(href);
-                    if (target) {
-                        window.scrollTo({
-                            top: target.offsetTop - 64,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 100);
-                e.preventDefault();
-                closeMobileNav();
-                return;
-            }
-
-            e.preventDefault();
-            const target = document.querySelector(href);
-            if (target) {
-                window.scrollTo({
-                    top: target.offsetTop - 64,
-                    behavior: 'smooth'
-                });
-            }
-            closeMobileNav();
-        });
-    });
-}
-
-// ========================================
-// Keyboard Shortcuts
-// ========================================
-function initKeyboard() {
-    document.addEventListener('keydown', (e) => {
-        // Cmd/Ctrl + K for search
-        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-            e.preventDefault();
-            if (searchModal.classList.contains('active')) {
-                closeSearch();
-            } else {
-                openSearch();
-            }
-        }
-
-        // Escape
-        if (e.key === 'Escape') {
-            if (searchModal.classList.contains('active')) {
-                closeSearch();
-            }
-            closeMobileNav();
-        }
-    });
-}
-
-// ========================================
-// Console Easter Egg
-// ========================================
-function showConsoleMessage() {
-    console.log('%c🔒 f4zzie\'s Portfolio', 'font-size: 20px; color: #818cf8; font-weight: bold;');
-    console.log('%cExploring cybersecurity one challenge at a time', 'font-size: 13px; color: #9ca0ab;');
-    console.log('%cPress Ctrl+K to search notes!', 'font-size: 12px; color: #34d399;');
-}
-
-// ========================================
-// Initialize Everything
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    initTypingEffect();
-    initAnimations();
-    initSmoothScroll();
-    initFilters();
-    initKeyboard();
-    showConsoleMessage();
-
-    // Event listeners
-    themeToggle.addEventListener('click', toggleTheme);
-    hamburger.addEventListener('click', toggleMobileNav);
-    searchToggle.addEventListener('click', openSearch);
-    searchInput.addEventListener('input', debounce(() => performSearch(searchInput.value), 200));
-    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    window.addEventListener('scroll', debounce(handleScroll, 10));
-
-    // Close mobile nav on outside click
-    document.addEventListener('click', (e) => {
-        if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
-            closeMobileNav();
-        }
+    // Fenced code blocks — must come first
+    h = h.replace(/```(\w*)\n([\s\S]*?)```/gm, function(_, lang, code) {
+        var safe = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return '<pre><code class="' + (lang ? 'language-' + lang : '') + '">' + safe + '</code></pre>';
     });
 
-    // Load content
-    loadContentStructure();
+    // Images with relative path resolution
+    h = h.replace(/!\[([^\]]*)\]\(([^)]+)\)/gm, function(_, alt, src) {
+        if (!src.startsWith('http') && !src.startsWith('/') && dir) {
+            src = dir + '/' + src;
+        }
+        return '<img src="' + src.replace(/"/g, '&quot;') + '" alt="' + esc(alt) + '" loading="lazy">';
+    });
 
-    // Initial scroll state
-    handleScroll();
+    // Tables
+    h = h.replace(/^(\|.+\|)\n\|[-:| ]+\|\n((?:\|.+\|\n?)+)/gm, function(_, hdr, body) {
+        var ths = hdr.split('|').filter(function(c) { return c.trim(); })
+            .map(function(c) { return '<th>' + c.trim() + '</th>'; }).join('');
+        var rows = body.trim().split('\n').map(function(row) {
+            var cells = row.split('|').filter(function(c) { return c.trim(); })
+                .map(function(c) { return '<td>' + c.trim() + '</td>'; }).join('');
+            return '<tr>' + cells + '</tr>';
+        }).join('');
+        return '<table><thead><tr>' + ths + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    });
 
-    // Trigger counter animation after a short delay (hero is immediately visible)
-    setTimeout(animateCounters, 500);
+    // Headings
+    h = h.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    h = h.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    h = h.replace(/^# (.+)$/gm, '<h1>$1</h1>');
 
-    // Hash navigation on load
-    if (window.location.hash) {
-        setTimeout(() => {
-            const target = document.querySelector(window.location.hash);
-            if (target) {
-                window.scrollTo({ top: target.offsetTop - 64, behavior: 'smooth' });
-            }
-        }, 300);
+    // Horizontal rule
+    h = h.replace(/^---+$/gm, '<hr>');
+
+    // Blockquote
+    h = h.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+    // Inline formatting
+    h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    h = h.replace(/~~(.+?)~~/g, '<del>$1</del>');
+
+    // Inline code (after fenced blocks are handled)
+    h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+    // Links
+    h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    // Lists
+    h = h.replace(/^[ \t]*[-*] (.+)$/gm, '<li>$1</li>');
+    h = h.replace(/^[ \t]*\d+\. (.+)$/gm, '<li>$1</li>');
+    h = h.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+    // Paragraphs — wrap bare text lines
+    var lines = h.split('\n');
+    var out = [];
+    var inPre = false;
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf('<pre>') !== -1) inPre = true;
+        if (line.indexOf('</pre>') !== -1) { inPre = false; out.push(line); continue; }
+        if (inPre) { out.push(line); continue; }
+        if (!line.trim()) { out.push(''); continue; }
+        if (/^<(h[1-6]|ul|ol|li|table|thead|tbody|tr|th|td|pre|blockquote|hr|img|div)/.test(line.trim())) {
+            out.push(line);
+        } else if (line.trim().charAt(0) === '<' && line.trim().charAt(1) === '/') {
+            out.push(line);
+        } else {
+            out.push('<p>' + line + '</p>');
+        }
     }
-});
+    return out.join('\n');
+}
 
-// ========================================
-// Make functions globally available
-// ========================================
-window.showCategoryView = showCategoryView;
-window.showWriteup = showWriteup;
-window.returnToHome = returnToHome;
-window.closeSearch = closeSearch;
-window.openSearch = openSearch;
+// ============================================================
+// Utils
+// ============================================================
+function esc(s) {
+    if (typeof s !== 'string') return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+function enc(p) {
+    return p.split('/').map(encodeURIComponent).join('/');
+}
+function dec(p) {
+    return p.split('/').map(decodeURIComponent).join('/');
+}
+
+// ============================================================
+// Boot
+// ============================================================
+loadData();
