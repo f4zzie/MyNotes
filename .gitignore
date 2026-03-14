@@ -56,5 +56,9 @@ yarn-error.log*
 coverage/
 .nyc_output/
 
+# Excluded content
+pico2026CTF/
+geeky-nextjs-main.zip
+
 # Misc
 *.lock

@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+@theme {
+  /* Geeky exact colors */
+  --color-primary: #2ba283;
+  --color-body: #ffffff;
+  --color-border: #e1e1e1;
+  --color-theme-light: #f2f2f2;
+  --color-theme-dark: #1a202c;
+  --color-text: #555555;
+  --color-dark: #222222;
+  --color-light: #999999;
+
+  /* Dark mode colors */
+  --color-dm-primary: #059669;
+  --color-dm-body: #111111;
+  --color-dm-border: #636363;
+  --color-dm-theme-dark: #383848;
+  --color-dm-text: #a4a4a4;
+  --color-dm-dark: #dddddd;
+
+  --font-primary: "Raleway", sans-serif;
+  --font-secondary: "Merriweather Sans", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  body {
+    @apply font-primary font-normal leading-relaxed text-text bg-body;
+  }
+
+  .dark body {
+    background-color: var(--color-dm-body);
+    color: var(--color-dm-text);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-secondary font-bold leading-tight;
+    color: #000;
+  }
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  .dark ::-webkit-scrollbar-thumb { background: var(--color-dm-border); }
+}
+
+/* ==================== SECTION ==================== */
+.section {
+  @apply py-16;
+}
+
+.section-title {
+  @apply mb-12 underline decoration-primary decoration-wavy decoration-2;
+  text-underline-offset: 0.5em;
+}
+.dark .section-title {
+  text-decoration-color: var(--color-dm-primary);
+}
+
+/* ==================== CONTAINER ==================== */
+.container {
+  @apply mx-auto px-8;
+  max-width: 1320px;
+}
+
+/* ==================== BUTTONS ==================== */
+.btn {
+  @apply font-secondary inline-block border px-5 py-2.5 font-bold transition-all duration-300;
+}
+.btn-primary {
+  @apply bg-primary text-white border-0 overflow-hidden relative;
+  border-radius: 50px;
+  padding: 10px 32px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dark .btn-primary {
+  background-color: var(--color-dm-primary);
+}
+.btn-primary:hover {
+  @apply opacity-90;
+}
+.btn-outline-primary {
+  @apply bg-transparent font-bold overflow-hidden relative;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  border-radius: 50px;
+  padding: 10px 32px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dark .btn-outline-primary {
+  border-color: var(--color-dm-primary);
+  color: var(--color-dm-primary);
+}
+.btn-outline-primary:hover {
+  @apply text-white;
+  background-color: var(--color-primary);
+}
+.dark .btn-outline-primary:hover {
+  background-color: var(--color-dm-primary);
+}
+
+/* ==================== NAV ==================== */
+.nav-link {
+  @apply font-secondary transition-all duration-200 capitalize;
+  font-size: 13.5px;
+  border-radius: 30px;
+  padding: 10px 20px;
+  color: var(--color-dark);
+}
+.dark .nav-link {
+  color: var(--color-dm-dark);
+}
+.nav-link:hover,
+.nav-link.active {
+  @apply text-white;
+  background-color: var(--color-primary);
+}
+.dark .nav-link:hover,
+.dark .nav-link.active {
+  background-color: var(--color-dm-primary);
+}
+
+/* ==================== CONTENT / MARKDOWN ==================== */
+.content h1 { @apply text-3xl mt-2 mb-4 font-bold; }
+.content h2 { @apply text-2xl mt-6 mb-3 font-bold; }
+.content h3 { @apply text-xl mt-5 mb-2 font-bold; }
+.content h4 { @apply text-lg mt-4 mb-2 font-bold; }
+.content p { @apply text-base mb-4 leading-relaxed; color: var(--color-text); }
+.dark .content p { color: var(--color-dm-text); }
+.content a { color: var(--color-primary); @apply no-underline hover:underline; }
+.dark .content a { color: var(--color-dm-primary); }
+.content ul, .content ol { @apply mb-4 pl-6; }
+.content ul { @apply list-disc; }
+.content ol { @apply list-decimal; }
+.content li { @apply mb-1; color: var(--color-text); }
+.dark .content li { color: var(--color-dm-text); }
+.content code {
+  @apply px-1 text-sm font-mono;
+  color: var(--color-primary);
+}
+.dark .content code { color: var(--color-dm-primary); }
+.content pre {
+  @apply rounded p-4 mb-4 overflow-x-auto;
+  background: #1a1a2e;
+}
+.content pre code {
+  @apply px-0;
+  color: #e2e8f0;
+}
+.content blockquote {
+  @apply mb-6 py-4 px-6 rounded not-italic border-0;
+  background: var(--color-theme-light);
+}
+.dark .content blockquote {
+  background: var(--color-dm-theme-dark);
+}
+.content blockquote p {
+  @apply text-lg;
+  color: #000;
+}
+.dark .content blockquote p {
+  color: #fff;
+}
+.content table { @apply w-full mb-4 rounded overflow-hidden border border-border; }
+.dark .content table { border-color: var(--color-dm-border); }
+.content thead { background: var(--color-theme-light); }
+.dark .content thead { background: var(--color-dm-theme-dark); }
+.content th { @apply px-4 py-3 text-left font-bold; color: var(--color-dark); }
+.dark .content th { color: var(--color-dm-dark); }
+.content td { @apply px-4 py-3 border-t border-border; color: var(--color-text); }
+.dark .content td { border-color: var(--color-dm-border); color: var(--color-dm-text); }
+.content strong { color: var(--color-dark); @apply font-semibold; }
+.dark .content strong { color: var(--color-dm-dark); }
+.content hr { @apply my-6 border-border; }
+.dark .content hr { border-color: var(--color-dm-border); }
+.content img { @apply max-w-full rounded my-4; }
+
+/* ==================== SOCIALS ==================== */
+.socials {
+  @apply flex items-center justify-center space-x-3;
+}
+.socials a {
+  @apply inline-block px-2 py-1 text-lg transition-colors;
+  color: var(--color-dark);
+}
+.dark .socials a {
+  color: var(--color-dm-dark);
+}
+.socials a:hover {
+  color: var(--color-primary);
+}
+.dark .socials a:hover {
+  color: var(--color-dm-primary);
+}
+
+/* ==================== EXPERIENCE DOTS ==================== */
+.experience-item {
+  @apply relative pl-7;
+}
+.experience-item::before {
+  content: "";
+  @apply absolute left-1 top-2.5 h-[9px] w-[9px] rounded-full border-2;
+  border-color: var(--color-body);
+  background-color: var(--color-primary);
+  box-shadow: 0px 0px 0px 2px var(--color-primary);
+}
+.dark .experience-item::before {
+  border-color: var(--color-dm-body);
+  background-color: var(--color-dm-primary);
+  box-shadow: 0px 0px 0px 2px var(--color-dm-primary);
+}
