@@ -28,24 +28,6 @@ I'm a cybersecurity learner focused on malware analysis and exploit development 
 | CTF Writeups | CyberStudents Day 1-4, picoCTF 2026 (37 challenges) |
 | Resources | Curated hacking tools, YouTube channels, and learning platforms |
 
-## Tech Stack
-
-- **Vite + React 18 + TypeScript** — fast SPA with type safety
-- **Tailwind CSS** — utility-first styling matching the Geeky template design
-- **Framer Motion** — page transitions and scroll animations
-- **React Markdown + remark-gfm** — full markdown rendering with tables, code blocks, and images
-- **React Router v6** — client-side routing (HashRouter for GitHub Pages)
-- **Lucide React** — category icons
-
-## Development
-
-```bash
-cd site
-npm install
-npm run dev       # http://localhost:5173/MyNotes/
-npm run build     # outputs to site/dist/
-```
-
 ## Contact
 
 - **GitHub:** [@f4zzie](https://github.com/f4zzie)
