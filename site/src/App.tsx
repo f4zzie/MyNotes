@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Navbar from "./components/Navbar";
@@ -7,10 +8,15 @@ import About from "./pages/About";
 import Projects from "./pages/Projects";
 import Notes from "./pages/Notes";
 import { useTheme } from "./hooks/useTheme";
+import { trackVisitor } from "./hooks/useTracker";
 
 export default function App() {
   const { dark, toggle } = useTheme();
   const location = useLocation();
+
+  useEffect(() => {
+    trackVisitor();
+  }, []);
 
   return (
     <div className={`min-h-screen flex flex-col ${dark ? "bg-dark" : "bg-light"}`}>
