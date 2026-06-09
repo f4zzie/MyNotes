@@ -1,12 +1,12 @@
 # Cybersecurity Portfolio - f4zzie
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?style=for-the-badge&logo=github)](https://f4zzie.github.io/MyNotes/)
-[![CTF](https://img.shields.io/badge/CTF-Writeups-green?style=for-the-badge)](https://f4zzie.github.io/MyNotes/)
-[![Malware Analysis](https://img.shields.io/badge/Malware-Analysis-red?style=for-the-badge)](https://f4zzie.github.io/MyNotes/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?style=for-the-badge&logo=github)](https://f4zzie.dev/)
+[![CTF](https://img.shields.io/badge/CTF-Writeups-green?style=for-the-badge)](https://f4zzie.dev/)
+[![Malware Analysis](https://img.shields.io/badge/Malware-Analysis-red?style=for-the-badge)](https://f4zzie.dev/)
 
 A modern, interactive portfolio and research site built with React + Tailwind CSS — showcasing 68+ cybersecurity notes, CTF writeups, malware analysis, and binary exploitation research.
 
-**View the live site:** [https://f4zzie.github.io/MyNotes/](https://f4zzie.github.io/MyNotes/)
+**View the live site:** [https://f4zzie.dev/](https://f4zzie.dev/)
 
 ## About
 
@@ -31,5 +31,5 @@ I'm a cybersecurity learner focused on malware analysis and exploit development 
 ## Contact
 
 - **GitHub:** [@f4zzie](https://github.com/f4zzie)
-- **X:** [@_lazerguard](https://x.com/_lazerguard)
-- **Website:** [https://f4zzie.github.io/MyNotes/](https://f4zzie.github.io/MyNotes/)
+- **X:** [@f4zzi3](https://x.com/f4zzi3)
+- **Website:** [https://f4zzie.dev/](https://f4zzie.dev/)
