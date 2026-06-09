@@ -150,6 +150,18 @@ const noteConfigs = [
     category: 'HTB Writeup',
     excerpt: 'HackTheBox Sherlocks SecretPictures investigation writeup involving digital forensics analysis to uncover hidden data within image files.'
   },
+  {
+    file: 'HTB/machines/facts/writeup.md',
+    id: 'htb-facts-writeup',
+    category: 'HTB Writeup',
+    excerpt: 'HackTheBox Facts machine writeup covering Camaleon CMS privilege escalation, MinIO credential discovery, SSH key recovery, and sudo-based root escalation.'
+  },
+  {
+    file: 'HTB/machines/WingData/writeup.md',
+    id: 'htb-wingdata-writeup',
+    category: 'HTB Writeup',
+    excerpt: 'HackTheBox WingData machine writeup chaining vhost discovery, Wing FTP unauthenticated RCE, XML credential extraction, hash cracking, and tarfile privilege escalation.'
+  },
 
   // ============================================================
   // CYBERSTUDENTS -> "CTF Writeup" (4 files)
@@ -458,7 +470,7 @@ function generateNote(config) {
   const rawContent = fs.readFileSync(fullPath, 'utf-8');
   const filename = path.basename(config.file);
 
-  const id = toKebabCase(filename);
+  const id = config.id || toKebabCase(filename);
   const title = extractTitle(rawContent, filename);
   const category = config.category;
   const excerpt = config.excerpt;

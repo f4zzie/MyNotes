@@ -1,42 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  BookOpen,
-  Calendar,
-  User,
-  ExternalLink,
-  Search,
-  Binary,
-  Bug,
-  Server,
-  Trophy,
-  Globe,
-  Terminal,
-  Link as LinkIcon,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import { notes, categories } from "../data/notes";
 import NoteModal from "../components/NoteModal";
 import Sidebar from "../components/Sidebar";
-
-const categoryIcons: Record<string, LucideIcon> = {
-  "Malware Analysis": Search,
-  "Binary Exploitation": Binary,
-  "Reverse Engineering": Bug,
-  "HTB Writeup": Server,
-  "CTF Writeup": Trophy,
-  Resources: BookOpen,
-  "picoCTF - Binary Exploitation": Binary,
-  "picoCTF - Reverse Engineering": Bug,
-  "picoCTF - Web Exploitation": Globe,
-  "picoCTF - General Skills": Terminal,
-  "picoCTF - Blockchain": LinkIcon,
-};
-
-function CategoryIcon({ category, size = 40 }: { category: string; size?: number }) {
-  const Icon = categoryIcons[category] || BookOpen;
-  return <Icon size={size} className="text-primary/30 dark:text-dm-primary/30" />;
-}
+import CategoryIcon from "../components/CategoryIcon";
+import { getCategoryIcon } from "../components/categoryMeta";
 
 export default function Notes() {
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
@@ -52,11 +21,17 @@ export default function Notes() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Page title bar */}
-      <div className="py-12 text-center bg-theme-light dark:bg-dm-theme-dark">
-        <h1 className="text-3xl lg:text-[55px] font-bold">
-          Research & Writeups
-        </h1>
+      <div className="page-kicker">
+        <div className="container text-center">
+          <span className="eyebrow text-primary dark:text-dm-primary">Archive</span>
+          <h1 className="mt-3 text-3xl font-bold lg:text-5xl">
+            Research & Writeups
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-text dark:text-dm-text">
+            {notes.length} notes spanning malware analysis, binary exploitation,
+            reverse engineering, HTB, picoCTF, blockchain, web exploitation, and resources.
+          </p>
+        </div>
       </div>
 
       <div className="section">
@@ -65,21 +40,19 @@ export default function Notes() {
           <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
             <button
               onClick={() => setFilter(null)}
-              className={`btn text-sm ${!filter ? "btn-primary" : "btn-outline-primary"}`}
-              style={{ height: 36, padding: "6px 16px", fontSize: 12 }}
+              className={`filter-pill ${!filter ? "active" : ""}`}
             >
               All ({notes.length})
             </button>
             {categories.map((cat) => {
-              const Icon = categoryIcons[cat.name] || BookOpen;
+              const Icon = getCategoryIcon(cat.name);
               return (
                 <button
                   key={cat.name}
                   onClick={() => setFilter(cat.name === filter ? null : cat.name)}
-                  className={`btn text-sm ${filter === cat.name ? "btn-primary" : "btn-outline-primary"}`}
-                  style={{ height: 36, padding: "6px 16px", fontSize: 12 }}
+                  className={`filter-pill ${filter === cat.name ? "active" : ""}`}
                 >
-                  <Icon size={13} className="mr-1 inline" />
+                  <Icon size={13} className="mr-1.5 inline" />
                   {cat.name} ({cat.count})
                 </button>
               );
@@ -89,7 +62,7 @@ export default function Notes() {
           {/* Content + Sidebar */}
           <div className="flex flex-wrap items-start">
             <div className="w-full lg:w-8/12 mb-12 lg:mb-0">
-              <div className="rounded border border-border dark:border-dm-border p-4 px-3 lg:p-6">
+              <div className="archive-grid-shell">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
                   {filtered.map((note, i) => (
                     <motion.div
@@ -106,7 +79,7 @@ export default function Notes() {
                         style={{ aspectRatio: "405/208" }}
                       >
                         <div className="flex items-center justify-center h-full">
-                          <CategoryIcon category={note.category} size={44} />
+                          <CategoryIcon category={note.category} size={44} className="text-primary/45 dark:text-dm-primary/45" />
                         </div>
                         <div className="absolute top-3 left-2 flex gap-2">
                           <span className="category-badge">{note.category}</span>
@@ -134,27 +107,12 @@ export default function Notes() {
                         {note.excerpt}
                       </p>
 
-                      <span
-                        className="btn btn-outline-primary mt-4 text-sm"
-                        style={{ height: 38, padding: "8px 20px", fontSize: 12 }}
-                      >
+                      <span className="btn btn-outline-primary mt-4 text-sm">
                         Read More
                       </span>
                     </motion.div>
                   ))}
                 </div>
-              </div>
-
-              <div className="text-center mt-10">
-                <a
-                  href="https://f4zzie.github.io/MyNotes"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-primary"
-                >
-                  <ExternalLink size={16} className="mr-2" />
-                  View Full Notes Archive
-                </a>
               </div>
             </div>
 

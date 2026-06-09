@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import Hero from "../components/Hero";
 import NotesSection from "../components/NotesSection";
-import Sidebar from "../components/Sidebar";
 
 export default function Home() {
   return (
@@ -13,14 +12,8 @@ export default function Home() {
     >
       <Hero />
 
-      {/* Main content + Sidebar (Geeky 8/4 split) */}
       <div className="container">
-        <div className="flex flex-wrap items-start">
-          <div className="w-full lg:w-8/12 mb-12 lg:mb-0">
-            <NotesSection />
-          </div>
-          <Sidebar className="lg:mt-[9.5rem]" />
-        </div>
+        <NotesSection />
       </div>
     </motion.div>
   );

@@ -9,12 +9,11 @@ export default function Projects() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Page title bar */}
-      <div
-        className="py-12 text-center"
-        style={{ backgroundColor: "var(--color-theme-light)" }}
-      >
-        <h1 className="text-3xl lg:text-[55px] font-bold">Projects</h1>
+      <div className="page-kicker">
+        <div className="container text-center">
+          <span className="eyebrow text-primary dark:text-dm-primary">Build Log</span>
+          <h1 className="mt-3 text-3xl font-bold lg:text-5xl">Projects</h1>
+        </div>
       </div>
       <ProjectsSection />
     </motion.div>

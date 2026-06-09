@@ -19,7 +19,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className={`min-h-screen flex flex-col ${dark ? "bg-dark" : "bg-light"}`}>
+    <div className="min-h-screen flex flex-col bg-body dark:bg-dm-body">
       <Navbar dark={dark} toggleTheme={toggle} />
       <main className="flex-1">
         <AnimatePresence mode="wait">

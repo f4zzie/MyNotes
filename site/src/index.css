@@ -1,23 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* Geeky exact colors */
-  --color-primary: #2ba283;
-  --color-body: #ffffff;
-  --color-border: #e1e1e1;
-  --color-theme-light: #f2f2f2;
-  --color-theme-dark: #1a202c;
-  --color-text: #555555;
-  --color-dark: #222222;
-  --color-light: #999999;
+  --color-primary: #0f9f8f;
+  --color-body: #f8fafc;
+  --color-border: #d7e0e7;
+  --color-theme-light: #eef5f2;
+  --color-theme-dark: #14213a;
+  --color-text: #526170;
+  --color-dark: #111827;
+  --color-light: #718096;
 
-  /* Dark mode colors */
-  --color-dm-primary: #059669;
-  --color-dm-body: #111111;
-  --color-dm-border: #636363;
-  --color-dm-theme-dark: #383848;
-  --color-dm-text: #a4a4a4;
-  --color-dm-dark: #dddddd;
+  --color-dm-primary: #2dd4bf;
+  --color-dm-body: #07111f;
+  --color-dm-border: #263348;
+  --color-dm-theme-dark: #111c2d;
+  --color-dm-text: #bac7d5;
+  --color-dm-dark: #e2e8f0;
 
   --font-primary: "Raleway", sans-serif;
   --font-secondary: "Merriweather Sans", sans-serif;
@@ -54,7 +52,7 @@
 
 /* ==================== SECTION ==================== */
 .section {
-  @apply py-16;
+  @apply py-14 lg:py-16;
 }
 
 .section-title {
@@ -67,22 +65,19 @@
 
 /* ==================== CONTAINER ==================== */
 .container {
-  @apply mx-auto px-8;
+  @apply mx-auto px-5 sm:px-6 lg:px-8;
   max-width: 1320px;
 }
 
 /* ==================== BUTTONS ==================== */
 .btn {
-  @apply font-secondary inline-block border px-5 py-2.5 font-bold transition-all duration-300;
+  @apply font-secondary inline-flex items-center justify-center border px-5 py-2.5 font-bold transition-all duration-200;
+  border-radius: 8px;
 }
 .btn-primary {
   @apply bg-primary text-white border-0 overflow-hidden relative;
-  border-radius: 50px;
   padding: 10px 32px;
   height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 .dark .btn-primary {
   background-color: var(--color-dm-primary);
@@ -94,12 +89,8 @@
   @apply bg-transparent font-bold overflow-hidden relative;
   border: 2px solid var(--color-primary);
   color: var(--color-primary);
-  border-radius: 50px;
-  padding: 10px 32px;
-  height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 9px 24px;
+  min-height: 44px;
 }
 .dark .btn-outline-primary {
   border-color: var(--color-dm-primary);
@@ -112,13 +103,19 @@
 .dark .btn-outline-primary:hover {
   background-color: var(--color-dm-primary);
 }
+.btn-ghost-light {
+  @apply border-white/30 bg-white/10 text-white hover:bg-white/20;
+}
+.btn-link-clean {
+  @apply border-transparent px-0 text-primary hover:text-dark dark:text-dm-primary dark:hover:text-white;
+}
 
 /* ==================== NAV ==================== */
 .nav-link {
   @apply font-secondary transition-all duration-200 capitalize;
   font-size: 13.5px;
-  border-radius: 30px;
-  padding: 10px 20px;
+  border-radius: 8px;
+  padding: 9px 14px;
   color: var(--color-dark);
 }
 .dark .nav-link {
@@ -222,4 +219,131 @@
   border-color: var(--color-dm-body);
   background-color: var(--color-dm-primary);
   box-shadow: 0px 0px 0px 2px var(--color-dm-primary);
+}
+
+/* ==================== SITE UI ==================== */
+.hero-shell {
+  min-height: min(760px, calc(100vh - 72px));
+}
+
+.eyebrow {
+  @apply inline-flex text-xs font-bold uppercase;
+  letter-spacing: 0.16em;
+}
+
+.section-heading {
+  @apply max-w-3xl;
+}
+
+.page-kicker {
+  @apply border-b border-border bg-theme-light py-12 dark:border-dm-border dark:bg-dm-theme-dark;
+}
+
+.stat-tile,
+.focus-strip {
+  @apply border border-white/15 bg-white/10 p-5 backdrop-blur-md;
+  border-radius: 8px;
+}
+
+.stat-tile {
+  @apply flex flex-col gap-1;
+}
+
+.focus-strip {
+  @apply flex gap-4;
+}
+
+.note-card,
+.track-card,
+.project-card,
+.feature-panel,
+.side-panel,
+.archive-grid-shell {
+  @apply border border-border bg-white shadow-sm dark:border-dm-border dark:bg-dm-theme-dark/65;
+  border-radius: 8px;
+}
+
+.note-card,
+.project-card,
+.feature-panel {
+  @apply p-6 transition-all duration-200;
+}
+
+.note-card:hover,
+.project-card:hover {
+  @apply -translate-y-1 shadow-lg;
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+}
+
+.track-card,
+.side-panel {
+  @apply p-5;
+}
+
+.archive-grid-shell {
+  @apply p-4 px-3 lg:p-6;
+}
+
+.post-card {
+  @apply rounded-lg border border-transparent p-3 transition-all duration-200;
+}
+
+.post-card:hover {
+  @apply border-border bg-white shadow-md dark:border-dm-border dark:bg-dm-theme-dark;
+}
+
+.note-icon {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center;
+  border-radius: 8px;
+  background: var(--accent, var(--color-primary));
+}
+
+.category-badge {
+  @apply inline-flex max-w-full items-center px-2.5 py-1 text-xs font-bold text-white;
+  border-radius: 6px;
+  background-color: var(--color-primary);
+}
+.dark .category-badge {
+  background-color: var(--color-dm-primary);
+  color: #06111f;
+}
+
+.filter-pill {
+  @apply inline-flex min-h-9 items-center justify-center border border-border bg-white px-3 py-2 text-xs font-bold text-dark transition-colors dark:border-dm-border dark:bg-dm-theme-dark dark:text-dm-dark;
+  border-radius: 8px;
+}
+.filter-pill:hover,
+.filter-pill.active {
+  @apply border-primary bg-primary text-white dark:border-dm-primary dark:bg-dm-primary;
+}
+.dark .filter-pill:hover,
+.dark .filter-pill.active {
+  color: #06111f;
+}
+
+.mini-stat {
+  @apply border border-border bg-theme-light p-3 dark:border-dm-border dark:bg-dm-body;
+  border-radius: 8px;
+}
+.mini-stat strong {
+  @apply block text-xl font-bold text-dark dark:text-white;
+}
+.mini-stat span {
+  @apply text-xs font-bold uppercase text-light;
+  letter-spacing: 0.12em;
+}
+
+.icon-link,
+.icon-button {
+  @apply inline-flex h-10 w-10 items-center justify-center border border-border bg-white text-dark transition-colors hover:border-primary hover:text-primary dark:border-dm-border dark:bg-dm-body dark:text-dm-dark dark:hover:border-dm-primary dark:hover:text-dm-primary;
+  border-radius: 8px;
+}
+
+.tool-pill {
+  @apply inline-flex items-center border border-border bg-theme-light px-3 py-1.5 text-xs font-bold text-dark dark:border-dm-border dark:bg-dm-body dark:text-dm-dark;
+  border-radius: 6px;
+}
+
+.footer-link {
+  @apply text-text transition-colors hover:text-primary dark:text-dm-text dark:hover:text-dm-primary;
 }

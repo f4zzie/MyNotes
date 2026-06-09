@@ -1,91 +1,141 @@
 import { motion } from "framer-motion";
+import { Binary, Bug, Crosshair, FileSearch, ShieldCheck, Terminal } from "lucide-react";
+import { categories, notes } from "../data/notes";
+
+const focusAreas = [
+  {
+    icon: FileSearch,
+    title: "Malware Static Analysis",
+    desc: "Hashing, strings, PE headers, Windows APIs, process injection patterns, and sandbox triage notes.",
+  },
+  {
+    icon: Binary,
+    title: "Binary Exploitation",
+    desc: "Stack and heap exploitation, ROP, format strings, protections, pwndbg, GDB, and pwntools templates.",
+  },
+  {
+    icon: Bug,
+    title: "Reverse Engineering",
+    desc: "Crackmes, hidden cipher challenges, instrumentation writeups, x86 assembly, Ghidra, Cutter, and x64dbg.",
+  },
+  {
+    icon: Crosshair,
+    title: "CTF Attack Chains",
+    desc: "picoCTF, HTB, THM, and CyberStudents writeups with commands, reasoning, and verification steps.",
+  },
+];
+
+const toolStack = [
+  "Ghidra",
+  "Cutter",
+  "IDA Free",
+  "x64dbg",
+  "GDB",
+  "pwndbg",
+  "pwntools",
+  "nmap",
+  "ffuf",
+  "sqlmap",
+  "hashcat",
+  "john",
+  "Wireshark",
+  "solc",
+  "ethers.js",
+];
 
 export default function AboutSection() {
+  const picoCount = categories
+    .filter((category) => category.name.startsWith("picoCTF"))
+    .reduce((total, category) => total + category.count, 0);
+
   return (
-    <section className="section mt-16">
-      <div className="container text-center">
-        {/* Hero image */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <img
-            src="https://github.com/f4zzie.png"
-            alt="f4zzie"
-            className="rounded-lg mb-8 mx-auto"
-            style={{ maxWidth: 400 }}
-          />
-        </motion.div>
+    <section className="section">
+      <div className="container">
+        <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="overflow-hidden rounded-lg border border-border bg-theme-light dark:border-dm-border dark:bg-dm-theme-dark"
+          >
+            <img
+              src="https://github.com/f4zzie.png"
+              alt="f4zzie"
+              className="aspect-square w-full object-cover"
+            />
+          </motion.div>
 
-        <h1 className="text-left" style={{ fontSize: "clamp(28px, 4vw, 55px)" }}>
-          About The Author
-        </h1>
+          <div>
+            <span className="eyebrow text-primary dark:text-dm-primary">About The Author</span>
+            <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Security learner building a practical research vault.</h1>
+            <div className="content mt-6">
+              <p>
+                I’m focused on malware analysis, reverse engineering, exploit
+                development, and CTF problem solving. MyNotes is where I turn
+                those reps into readable walkthroughs, command references, and
+                technique notes I can revisit.
+              </p>
+              <p>
+                The site now indexes {notes.length} notes, including {picoCount} picoCTF
+                entries, HTB machine attack chains, malware static-analysis
+                references, and binary exploitation methodology.
+              </p>
+            </div>
 
-        <div className="content text-left mt-6">
-          <p>
-            I'm a cybersecurity learner focused on malware analysis and exploit
-            development with a strong interest in understanding how malicious software
-            operates at the lowest levels.
-          </p>
-          <p>
-            I enjoy breaking down malicious software, understanding attacker
-            techniques at a low level, and building tools to analyze, exploit,
-            and mitigate threats. Currently deepening my skills in advanced
-            binary exploitation, Windows & Linux memory corruption, and C2
-            mechanisms.
-          </p>
-          <p>
-            Open to collaboration on open-source security tools and defensive
-            projects.
-          </p>
-        </div>
-
-        {/* Education + Experience grid */}
-        <div className="flex flex-wrap mt-24 text-left gap-6 lg:flex-nowrap">
-          {/* Focus Areas */}
-          <div className="w-full lg:w-1/2">
-            <div className="rounded border border-border dark:border-dm-border p-6">
-              <h2 className="section-title mb-12">Focus Areas</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-                {[
-                  { title: "Malware Analysis", desc: "Static & dynamic analysis, PE triage, behavioral monitoring" },
-                  { title: "Reverse Engineering", desc: "Ghidra, IDA, x64dbg — decompilation & binary patching" },
-                  { title: "Binary Exploitation", desc: "Buffer overflows, ROP chains, heap exploitation, format strings" },
-                  { title: "Threat Intelligence", desc: "IOC extraction, YARA rules, campaign tracking" },
-                ].map((item) => (
-                  <div key={item.title}>
-                    <h4 className="text-base lg:text-[22px]">{item.title}</h4>
-                    <p className="mt-2 text-text dark:text-dm-text">{item.desc}</p>
-                  </div>
-                ))}
+            <div className="mt-7 grid grid-cols-3 gap-3">
+              <div className="mini-stat">
+                <strong>{notes.length}</strong>
+                <span>notes</span>
+              </div>
+              <div className="mini-stat">
+                <strong>{categories.length}</strong>
+                <span>tracks</span>
+              </div>
+              <div className="mini-stat">
+                <strong>{picoCount}</strong>
+                <span>picoCTF</span>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Skills / Experience */}
-          <div className="w-full lg:w-1/2">
-            <div className="rounded border border-border dark:border-dm-border p-6">
-              <h2 className="section-title mb-12">Skills & Tools</h2>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {[
-                  "Malware Reverse Engineering",
-                  "Static & Dynamic Analysis",
-                  "Exploit Development",
-                  "Windows Internals",
-                  "PE Analysis & Triage",
-                  "Process Injection",
-                  "x86/x64 Assembly",
-                  "Buffer Overflows & ROP",
-                  "Threat Intelligence",
-                  "CTF Competitions",
-                ].map((skill) => (
-                  <li key={skill} className="experience-item text-lg font-bold text-dark dark:text-dm-dark">
-                    {skill}
-                  </li>
-                ))}
-              </ul>
+        <div className="mt-16 grid gap-5 md:grid-cols-2">
+          {focusAreas.map((item, index) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
+              className="feature-panel"
+            >
+              <item.icon size={24} className="text-primary dark:text-dm-primary" />
+              <h3 className="mt-4 text-xl font-bold">{item.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-text dark:text-dm-text">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+          <div className="feature-panel">
+            <ShieldCheck size={24} className="text-primary dark:text-dm-primary" />
+            <h2 className="mt-4 text-2xl font-bold">Research Style</h2>
+            <p className="mt-3 text-sm leading-7 text-text dark:text-dm-text">
+              The notes favor attack-chain clarity: recon, why each step
+              matters, exploitation, verification, root cause, and mitigation
+              where it fits.
+            </p>
+          </div>
+
+          <div className="feature-panel">
+            <Terminal size={24} className="text-primary dark:text-dm-primary" />
+            <h2 className="mt-4 text-2xl font-bold">Tooling Seen In The Vault</h2>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {toolStack.map((tool) => (
+                <span key={tool} className="tool-pill">
+                  {tool}
+                </span>
+              ))}
             </div>
           </div>
         </div>

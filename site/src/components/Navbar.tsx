@@ -22,16 +22,11 @@ export default function Navbar({ dark, toggleTheme }: NavbarProps) {
   return (
     <>
       <header
-        className="sticky top-0 z-50 border-b"
-        style={{
-          borderColor: dark ? "var(--color-dm-border)" : "var(--color-border)",
-          backgroundColor: dark ? "var(--color-dm-body)" : "var(--color-body)",
-        }}
+        className="sticky top-0 z-50 border-b border-border/80 bg-body/90 backdrop-blur-xl dark:border-dm-border/80 dark:bg-dm-body/90"
       >
-        <nav className="container flex items-center justify-between" style={{ padding: "33px 32px" }}>
-          {/* Logo */}
-          <Link to="/" className="font-secondary text-xl font-bold" style={{ color: dark ? "#fff" : "var(--color-dark)" }}>
-            f4zzie
+        <nav className="container flex items-center justify-between py-4">
+          <Link to="/" className="font-secondary text-lg font-bold text-dark dark:text-white">
+            f4zzie<span className="text-primary dark:text-dm-primary">/MyNotes</span>
           </Link>
 
           {/* Desktop Nav + Right Actions */}
@@ -65,8 +60,9 @@ export default function Navbar({ dark, toggleTheme }: NavbarProps) {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="ml-1 mr-1 h-8 w-8 rounded p-1 sm:ml-2"
+              className="icon-button ml-1 mr-1 sm:ml-2"
               style={{ color: dark ? "#f3f4f6" : "#111827" }}
+              aria-label="Toggle theme"
             >
               {dark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
@@ -74,8 +70,8 @@ export default function Navbar({ dark, toggleTheme }: NavbarProps) {
             {/* Search icon → links to notes */}
             <Link
               to="/notes"
-              className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full text-white"
-              style={{ backgroundColor: dark ? "var(--color-dm-primary)" : "var(--color-primary)" }}
+              className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white dark:bg-dm-primary"
+              aria-label="Search notes"
             >
               <Search size={18} />
             </Link>
@@ -83,8 +79,8 @@ export default function Navbar({ dark, toggleTheme }: NavbarProps) {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full text-white"
-              style={{ backgroundColor: dark ? "var(--color-dm-primary)" : "var(--color-primary)" }}
+              className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white dark:bg-dm-primary"
+              aria-label="Open menu"
             >
               <Menu size={20} />
             </button>
