@@ -2,11 +2,12 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { remarkWikilinkImages } from "./src/plugins/remark-wikilink-images.mjs";
 
-// note folder -> slug -> ISO date, scanned once at config load for sitemap lastmod
+// note folder -> slug -> mtime, scanned once at config load for sitemap lastmod
+// (notes carry no `date:` field, so the file's modified time is the best signal)
 const CONTENT_ROOT = join(import.meta.dirname, "..", "content");
 const NOTE_DATES = new Map();
 function scan(dir) {
@@ -14,13 +15,8 @@ function scan(dir) {
     const p = join(dir, entry);
     if (statSync(p).isDirectory()) scan(p);
     else if (entry.endsWith(".md")) {
-      const raw = readFileSync(p, "utf8");
-      const m = raw.match(/^date:\s*(.+)$/m);
-      if (!m) continue;
-      const date = new Date(m[1].trim());
-      if (Number.isNaN(date.getTime())) continue;
       const key = relative(CONTENT_ROOT, p).replace(/\\/g, "/").replace(/\.md$/, "");
-      NOTE_DATES.set(key, date.toISOString());
+      NOTE_DATES.set(key, statSync(p).mtime.toISOString());
     }
   }
 }
