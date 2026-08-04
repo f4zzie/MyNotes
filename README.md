@@ -12,6 +12,27 @@ to be fast, accessible, and discoverable on search.
 
 ---
 
+## Content
+
+84 public writeups and notes:
+
+| Track | Notes |
+|---|---|
+| CTF Writeups (incl. perfectRootCTF series) | 18 |
+| Binary Exploitation | 14 |
+| picoCTF Reverse Engineering | 11 |
+| picoCTF General Skills | 8 |
+| picoCTF Binary Exploitation | 8 |
+| Malware Analysis | 8 |
+| picoCTF Web Exploitation | 6 |
+| picoCTF Blockchain | 4 |
+| HTB Writeups | 4 |
+| Reverse Engineering | 2 |
+| Resources | 1 |
+
+Every note renders as its own URL: `f4zzie.dev/notes/<track>/<slug>/`, with per-note
+SEO frontmatter, and `/notes/` supports live search + category and tag filtering.
+
 ## Architecture
 
 This repo is **both an Obsidian vault and a statically-generated website**.
@@ -22,6 +43,10 @@ content/          Markdown notes (single source of truth, edited in Obsidian).
 images/           Embedded images (synced into the site build).
 site/             Astro project — renders content/ into static, pre-rendered HTML.
 ```
+
+Not committed (kept on disk / in the private vault only): the raw lab and challenge
+dirt — `/HTB/`, `/THM/`, `/perfectRootCTF/` (nmap scans, extracted forensics, hash
+dumps). Only the distilled writeups in `content/` are public.
 
 - **Framework:** [Astro](https://astro.build) (static output, ~zero client JS).
 - **Styling:** Tailwind CSS v4, brand teal `#0f9f8f` / `#2dd4bf`, dark-first.
@@ -40,7 +65,6 @@ title: "Return-Oriented Programming Fundamentals"
 description: "Chaining gadgets to bypass NX and build a ROP exploit end to end."
 category: "Binary Exploitation"
 tags: [rop, pwntools, pwn]
-date: 2026-07-24
 published: true      # set false to keep it out of the live build
 ---
 ```
