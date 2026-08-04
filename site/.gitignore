@@ -1,0 +1,15 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# generated public assets (synced from ../images at build)
+public/images/
+
+# logs / env
+*.log
+.env
+.env.production
+.DS_Store

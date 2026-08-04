@@ -1,0 +1,137 @@
+---
+import Base from "../../layouts/Base.astro";
+import { slugifyCategory, SITE } from "../../lib/site.mjs";
+import { getNotes, groupByCategory } from "../../lib/notes.mjs";
+
+const notes = await getNotes();
+const byCat = groupByCategory(notes);
+const categories = [...byCat.keys()];
+const allTags = [...new Set(notes.flatMap((n) => n.data.tags || []))].sort();
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Research Notes",
+  url: `${SITE.url}/notes/`,
+  description: "All cybersecurity research notes and writeups by f4zzie.",
+  hasPart: notes.slice(0, 50).map((n) => ({
+    "@type": "TechArticle",
+    headline: n.data.title,
+    url: `${SITE.url}${n.url}`,
+  })),
+}];
+---
+<Base
+  seo={{ title: "Research Notes", description: `Browse all ${notes.length} cybersecurity research notes and writeups: malware analysis, binary exploitation, reverse engineering, HTB and CTF.`, jsonLd }}
+  footer={{ noteCount: notes.length, categoryCount: categories.length }}
+>
+  <section class="border-b border-border bg-surface-2 py-14">
+    <div class="container">
+      <span class="eyebrow">Archive</span>
+      <h1 class="mt-3 text-4xl font-bold sm:text-5xl">Research Notes</h1>
+      <p class="mt-4 max-w-2xl text-muted">
+        {notes.length} writeups across {categories.length} tracks. Search by title, tag, or keyword.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <input
+        id="note-search"
+        type="search"
+        placeholder="Search notes — e.g. ROP, PE headers, HTB, format string…"
+        class="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-body outline-none focus:border-primary"
+      />
+
+      <div class="mt-5 flex flex-wrap gap-2" id="filter-bar">
+        <button class="filter-pill active" data-cat="all">All ({notes.length})</button>
+        {categories.map((c) => (
+          <button class="filter-pill" data-cat={c}>{c} ({byCat.get(c).length})</button>
+        ))}
+      </div>
+
+      <div id="tag-bar" class="mt-3 flex flex-wrap gap-2">
+        <button class="filter-pill active" data-tag="all">All tags</button>
+        {allTags.map((t) => (
+          <button class="filter-pill" data-tag={t.toLowerCase()}>{t}</button>
+        ))}
+      </div>
+
+      <p id="empty" class="mt-10 hidden text-center text-muted">No notes match your search.</p>
+
+      <div id="note-grid" class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {notes.map((n) => (
+          <a
+            href={n.url}
+            class="note-item note-card"
+            data-cat={n.data.category}
+            data-tags={(n.data.tags || []).join(" ").toLowerCase()}
+            data-search={`${n.data.title} ${n.data.category} ${(n.data.tags||[]).join(" ")} ${n.data.description}`.toLowerCase()}
+          >
+            <span class="category-badge">{n.data.category}</span>
+            <h2 class="mt-4 text-lg font-bold text-heading">{n.data.title}</h2>
+            <p class="mt-2 line-clamp-3 text-sm leading-6 text-muted">{n.data.description}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      const search = document.getElementById("note-search");
+      const items = Array.from(document.querySelectorAll(".note-item"));
+      const pills = Array.from(document.querySelectorAll("#filter-bar .filter-pill"));
+      const tagPills = Array.from(document.querySelectorAll("#tag-bar .filter-pill"));
+      const empty = document.getElementById("empty");
+      let cat = "all";
+      let tag = "all";
+
+      // preselect from ?q= (SearchAction), ?cat= and ?tag=
+      const params = new URLSearchParams(location.search);
+      if (params.get("q")) search.value = params.get("q");
+      function preselect(group, buttons, value) {
+        const b = buttons.find((x) => x.dataset[group] === value);
+        if (b) {
+          buttons.forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+        }
+      }
+      if (params.get("cat")) { cat = params.get("cat"); preselect("cat", pills, cat); }
+      if (params.get("tag")) { tag = params.get("tag"); preselect("tag", tagPills, tag); }
+
+      function apply() {
+        const q = search.value.trim().toLowerCase();
+        let shown = 0;
+        for (const el of items) {
+          const okCat = cat === "all" || el.dataset.cat === cat;
+          const okTag = tag === "all" || el.dataset.tags.includes(tag);
+          const okQ = !q || el.dataset.search.includes(q);
+          const show = okCat && okTag && okQ;
+          el.style.display = show ? "" : "none";
+          if (show) shown++;
+        }
+        empty.classList.toggle("hidden", shown > 0);
+      }
+      search.addEventListener("input", apply);
+      pills.forEach((p) =>
+        p.addEventListener("click", () => {
+          pills.forEach((x) => x.classList.remove("active"));
+          p.classList.add("active");
+          cat = p.dataset.cat;
+          apply();
+        })
+      );
+      tagPills.forEach((p) =>
+        p.addEventListener("click", () => {
+          tagPills.forEach((x) => x.classList.remove("active"));
+          p.classList.add("active");
+          tag = p.dataset.tag;
+          apply();
+        })
+      );
+      apply();
+    })();
+  </script>
+</Base>

@@ -1,0 +1,121 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Obsidian (keep .obsidian for syncing, but ignore workspace)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Temporary Files
+*.tmp
+*.temp
+*.log
+*.cache
+.cache/
+
+# Build Files
+dist/
+build/
+out/
+.next/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment Files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backup Files
+*.bak
+*.backup
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# Excluded content
+pico2026CTF/
+geeky-nextjs-main.zip
+
+# Raw lab / challenge dirs (writeups live in /content — NEVER commit)
+/HTB/
+/THM/
+/perfectRootCTF/
+.refsite/
+
+# Misc
+*.lock
+node-bin/
+
+# ============================================================
+# Lab artifacts & secrets — NEVER commit (kept on disk locally)
+# ============================================================
+# Credentials / keys / certs / tickets
+*.pfx
+*.key
+*.crt
+*.pem
+*.kirbi
+*.ccache
+*.b64
+flag.txt
+creds.txt
+hash.txt
+hash*.txt
+users.txt
+valid_users.txt
+usernames*.txt
+
+# Loot / capture / installers / dumps
+*.pcap
+*.pcapng
+*.msi
+*.dll
+*.kdbx
+*.ntds
+*.dit
+
+# Tool output directories
+**/bh/
+**/loot/
+**/nmap
+nmap.*
+nmap_*
+*.nmap
+*.gnmap
+
+# HTB / THM lab working dirs (writeups live in /content instead)
+THM/labs/
+HTB/machines/*/nmap*
+HTB/machines/*/bh/
+
+# Stale root build (site now builds from /site)
+/assets/
+/index.html
+
+# Private daily notes
+daily/
+

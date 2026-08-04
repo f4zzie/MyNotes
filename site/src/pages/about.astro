@@ -1,0 +1,77 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE } from "../lib/site.mjs";
+import { getNotes, groupByCategory } from "../lib/notes.mjs";
+
+const notes = await getNotes();
+const byCat = groupByCategory(notes);
+const picoCount = [...byCat.keys()].filter((c) => c.startsWith("picoCTF")).reduce((a, c) => a + byCat.get(c).length, 0);
+
+const focusAreas = [
+  { title: "Malware Static Analysis", desc: "Hashing, strings, PE headers, Windows APIs, and process-injection patterns." },
+  { title: "Binary Exploitation", desc: "Stack and heap exploitation, ROP, format strings, protections, pwndbg and pwntools." },
+  { title: "Reverse Engineering", desc: "Crackmes, cipher challenges, x86 assembly, Ghidra, Cutter and x64dbg." },
+  { title: "CTF Attack Chains", desc: "picoCTF, HTB, THM and perfectRoot writeups with commands, reasoning, and verification." },
+];
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "About f4zzie",
+  url: `${SITE.url}/about/`,
+  mainEntity: {
+    "@type": "Person",
+    name: "f4zzie",
+    url: SITE.url,
+    sameAs: [SITE.github, SITE.x, SITE.htb],
+    jobTitle: "Cybersecurity Researcher",
+  },
+}];
+---
+<Base
+  seo={{ title: "About", description: "About f4zzie — a cybersecurity researcher focused on malware analysis, reverse engineering, binary exploitation, and CTF challenges.", jsonLd }}
+  footer={{ noteCount: notes.length, categoryCount: byCat.size }}
+>
+  <section class="section">
+    <div class="container grid items-start gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+      <div class="card overflow-hidden">
+        <img src="https://github.com/f4zzie.png" alt="f4zzie" width="400" height="400" class="aspect-square w-full object-cover" loading="lazy" />
+      </div>
+      <div>
+        <span class="eyebrow">About the author</span>
+        <h1 class="mt-4 text-4xl font-bold sm:text-5xl">Cybersecurity researcher building a public research vault.</h1>
+        <div class="mt-6 space-y-4 leading-8 text-muted">
+          <p>
+            I'm f4zzie, a cybersecurity researcher focused on malware analysis, reverse engineering,
+            binary exploitation, and challenge-based offensive security practice. This site documents
+            the work, the methods, and the lessons I keep sharpening.
+          </p>
+          <p>
+            The vault currently indexes {notes.length} research notes — including {picoCount} picoCTF
+            challenge writeups, Hack The Box machine attack chains, malware static-analysis references,
+            and binary exploitation methodology.
+          </p>
+        </div>
+        <div class="mt-8 grid grid-cols-3 gap-3">
+          <div class="mini-stat"><strong>{notes.length}</strong><span>notes</span></div>
+          <div class="mini-stat"><strong>{byCat.size}</strong><span>tracks</span></div>
+          <div class="mini-stat"><strong>{picoCount}</strong><span>picoCTF</span></div>
+        </div>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href={SITE.github} target="_blank" rel="noreferrer me" class="btn btn-outline">GitHub</a>
+          <a href={SITE.x} target="_blank" rel="noreferrer me" class="btn btn-outline">X / Twitter</a>
+          <a href="/notes" class="btn btn-primary">Read the notes</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-16 grid gap-5 md:grid-cols-2">
+      {focusAreas.map((f) => (
+        <div class="card card-pad">
+          <h2 class="text-xl font-bold">{f.title}</h2>
+          <p class="mt-3 text-sm leading-7 text-muted">{f.desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>

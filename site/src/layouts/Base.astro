@@ -1,0 +1,45 @@
+---
+import "../styles/global.css";
+import SEO from "../components/SEO.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import VisitorTracker from "../components/VisitorTracker.astro";
+
+const { seo = {}, footer = {} } = Astro.props;
+---
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title="f4zzie.dev" href="/rss.xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <!-- no-flash theme: apply saved theme (or OS preference) before first paint -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("theme") || "dark"; // Teal Dark is the signature default
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <SEO {...seo} />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <Navbar />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer noteCount={footer.noteCount} categoryCount={footer.categoryCount} />
+    <VisitorTracker />
+  </body>
+</html>

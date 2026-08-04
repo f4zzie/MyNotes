@@ -1,0 +1,48 @@
+---
+import Base from "../../../layouts/Base.astro";
+import NoteCard from "../../../components/NoteCard.astro";
+import { SITE, CATEGORY_META, slugifyCategory } from "../../../lib/site.mjs";
+import { getNotes, groupByCategory } from "../../../lib/notes.mjs";
+
+export async function getStaticPaths() {
+  const notes = await getNotes();
+  const byCat = groupByCategory(notes);
+  return [...byCat.entries()].map(([cat, list]) => ({
+    params: { cat: slugifyCategory(cat) },
+    props: { cat, list, total: notes.length, catCount: byCat.size },
+  }));
+}
+
+const { cat, list, total, catCount } = Astro.props;
+const blurb = CATEGORY_META[cat]?.blurb || `Cybersecurity research notes on ${cat}.`;
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: `${cat} — Research Notes`,
+  url: `${SITE.url}/category/${slugifyCategory(cat)}/`,
+  description: blurb,
+}];
+---
+<Base
+  seo={{ title: `${cat} Notes & Writeups`, description: `${blurb} ${list.length} writeups by f4zzie.`, jsonLd }}
+  footer={{ noteCount: total, categoryCount: catCount }}
+>
+  <section class="border-b border-border py-14" style="background:linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent)">
+    <div class="container">
+      <nav aria-label="Breadcrumb" class="mb-4 flex items-center gap-2 text-xs font-bold text-muted">
+        <a href="/" class="footer-link">Home</a><span>/</span>
+        <a href="/notes" class="footer-link">Notes</a>
+      </nav>
+      <span class="category-badge">{list.length} writeups</span>
+      <h1 class="mt-4 text-4xl font-bold sm:text-5xl">{cat}</h1>
+      <p class="mt-4 max-w-2xl text-muted">{blurb}</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {list.map((n) => <NoteCard note={n} />)}
+    </div>
+  </section>
+</Base>

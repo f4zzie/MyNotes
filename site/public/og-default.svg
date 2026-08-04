@@ -1,0 +1,32 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07111f"/>
+      <stop offset="1" stop-color="#0d1b2e"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="120" y1="240" x2="820" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#2dd4bf" stroke-opacity="0.08" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <circle cx="1000" cy="120" r="360" fill="#2dd4bf" fill-opacity="0.08"/>
+
+  <g font-family="'Merriweather Sans','Segoe UI',sans-serif">
+    <text x="120" y="150" fill="#2dd4bf" font-size="26" font-weight="700" letter-spacing="6">CYBERSECURITY RESEARCH VAULT</text>
+    <text x="118" y="300" fill="#ffffff" font-size="88" font-weight="800">f4zzie<tspan fill="#2dd4bf">.dev</tspan></text>
+    <text x="120" y="380" fill="#bac7d5" font-size="34" font-weight="400">Malware analysis · Reverse engineering</text>
+    <text x="120" y="428" fill="#bac7d5" font-size="34" font-weight="400">Binary exploitation · HTB &amp; CTF writeups</text>
+  </g>
+
+  <g font-family="'JetBrains Mono',monospace">
+    <rect x="120" y="490" width="220" height="52" rx="10" fill="#2dd4bf" fill-opacity="0.12" stroke="#2dd4bf" stroke-opacity="0.4"/>
+    <text x="150" y="524" fill="#2dd4bf" font-size="24" font-weight="500">$ whoami</text>
+    <text x="370" y="524" fill="#7dd3fc" font-size="24">red teamer · bug bounty · CTF</text>
+  </g>
+</svg>
