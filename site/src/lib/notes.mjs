@@ -1,8 +1,12 @@
 import { getCollection } from "astro:content";
 
 // Returns published notes, newest first (undated last), with derived url/slug.
+// Scope: picoCTF writeups only.
 export async function getNotes() {
-  const all = await getCollection("notes", ({ data }) => data.published !== false);
+  const all = await getCollection(
+    "notes",
+    ({ data }) => data.published !== false && /^picoctf/i.test(data.category)
+  );
   return all
     .map((n) => ({
       ...n,

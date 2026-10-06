@@ -1,13 +1,30 @@
 ---
 import Base from "../layouts/Base.astro";
-import NoteCard from "../components/NoteCard.astro";
-import { SITE, CATEGORY_META, slugifyCategory } from "../lib/site.mjs";
+import { SITE, slugifyCategory } from "../lib/site.mjs";
 import { getNotes, groupByCategory } from "../lib/notes.mjs";
 
 const notes = await getNotes();
 const byCat = groupByCategory(notes);
 const categories = [...byCat.keys()];
-const featured = notes.slice(0, 6);
+
+// Group the feed by year (undated notes bucket together, shown last).
+function yearOf(n) {
+  return n.data.date ? new Date(n.data.date).getFullYear() : null;
+}
+const groups = new Map();
+for (const n of notes) {
+  const key = yearOf(n) ?? "unsorted";
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key).push(n);
+}
+const years = [...groups.keys()].sort((a, b) => {
+  if (a === "unsorted") return 1;
+  if (b === "unsorted") return -1;
+  return b - a;
+});
+
+const fmt = (d) =>
+  d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "——";
 
 const jsonLd = [
   {
@@ -34,66 +51,67 @@ const jsonLd = [
 ];
 ---
 <Base seo={{ jsonLd }} footer={{ noteCount: notes.length, categoryCount: categories.length }}>
-  <!-- HERO -->
-  <section class="relative overflow-hidden">
-    <div class="hero-grid-bg"></div>
-    <div class="home">
-      <div class="avatar-wrapper">
-        <img class="avatar" src="https://github.com/f4zzie.png" alt="f4zzie" width="132" height="132" />
-      </div>
-      <p class="hero-kicker">security research · malware · reverse engineering · pwn · ctf</p>
-      <h1 class="name">f4zzie</h1>
-      <p class="tagline">
-        A public vault of hands-on offensive-security research — {notes.length} writeups on the method,
-        the reasoning, and the verification behind each one.
-      </p>
-      <div class="social-row">
-        <a href={SITE.github} target="_blank" rel="noreferrer me" aria-label="GitHub" class="social-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.23 1.92 1.23 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>
-        </a>
-        <a href={SITE.x} target="_blank" rel="noreferrer me" aria-label="X" class="social-icon">
-          <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        </a>
-        <a href={SITE.htb} target="_blank" rel="noreferrer" aria-label="Hack The Box" class="social-icon">
-          <svg viewBox="0 0 24 24"><path d="M11.996 0 1.66 6v12l10.336 6 10.343-6V6L11.996 0zm6.86 7.98v8.05l-6.86 3.98-6.853-3.98V7.98l6.853-3.98 6.86 3.98zm-6.86.02-4.02 2.33v.02l4.02 2.33 4.02-2.33-4.02-2.35z"/></svg>
-        </a>
-        <a href={`mailto:${SITE.email}`} aria-label="Email" class="social-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
-        </a>
-      </div>
-      <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="/notes" class="btn btn-primary">Explore writeups</a>
-        <a href="/about" class="btn btn-outline">About</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- LATEST WRITEUPS -->
-  <section class="section pt-0">
+  <section class="section">
     <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Latest writeups</h2>
-        <a href="/notes" class="view-all">View all →</a>
+      <!-- PROFILE HEADER -->
+      <div class="profile">
+        <img class="profile-pic" src="/f4zzie.png" alt="f4zzie" width="96" height="96" />
+        <div class="profile-body">
+          <h1 class="profile-name">f4zzie</h1>
+          <p class="profile-role">Offensive Security · Binary Exploitation · Reverse Engineering</p>
+          <p class="profile-bio">
+            picoCTF writeups documenting the full method behind each solve — the reasoning,
+            the commands, and the verification. {notes.length} challenges across {categories.length} categories.
+          </p>
+          <div class="profile-links">
+            <a href={SITE.github} target="_blank" rel="noreferrer me" class="btn btn-outline">GitHub</a>
+            <a href={SITE.x} target="_blank" rel="noreferrer me" class="btn btn-outline">X</a>
+            <a href="/notes" class="btn btn-primary">Browse writeups</a>
+          </div>
+        </div>
       </div>
-      <div class="posts-grid">
-        {featured.map((n) => <NoteCard note={n} />)}
-      </div>
-    </div>
-  </section>
 
-  <!-- RESEARCH TRACKS -->
-  <section class="section pt-0">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Research tracks</h2>
-        <a href="/notes" class="view-all">Browse notes →</a>
+      <!-- WRITEUP FEED -->
+      <div class="section-header" style="margin-top:2.5rem">
+        <h2 class="section-title">writeups</h2>
+        <a href="/notes" class="view-all">browse all & search →</a>
       </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+      {years.map((y) => (
+        <>
+          <div class="year-head">{y === "unsorted" ? "// unsorted" : y}</div>
+          <div class="feed">
+            {groups.get(y).map((n) => (
+              <a href={n.url} class="post-row">
+                <span class="post-date">{fmt(n.data.date)}</span>
+                <div class="post-main">
+                  <span class="post-cat">{n.data.category}</span>
+                  <span class="post-title">{n.data.title}</span>
+                  {n.data.description && <p class="post-desc">{n.data.description}</p>}
+                  {n.data.tags?.length > 0 && (
+                    <div class="post-tags">
+                      {n.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}
+                    </div>
+                  )}
+                </div>
+              </a>
+            ))}
+          </div>
+        </>
+      ))}
+
+      <!-- TRACKS (compact, text-first) -->
+      <div class="section-header" style="margin-top:3rem">
+        <h2 class="section-title">tracks</h2>
+        <a href="/notes" class="view-all">filter by track →</a>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((c) => (
           <a href={`/category/${slugifyCategory(c)}/`} class="note-card">
-            <span class="category-badge">{byCat.get(c).length} notes</span>
-            <h3 class="mt-4 text-lg font-bold text-heading">{c}</h3>
-            <p class="mt-2 text-sm leading-6 text-muted">{CATEGORY_META[c]?.blurb || ""}</p>
+            <div class="flex items-center justify-between gap-2">
+              <span class="post-cat">{c}</span>
+              <span class="post-date">{byCat.get(c).length} notes</span>
+            </div>
           </a>
         ))}
       </div>

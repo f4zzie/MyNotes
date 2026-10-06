@@ -2,17 +2,14 @@
 const { note } = Astro.props;
 const iso = note.data.date ? new Date(note.data.date).toISOString() : undefined;
 const dateLabel = note.data.date
-  ? new Date(note.data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-  : "";
+  ? new Date(note.data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" })
+  : "——";
 ---
-<a href={note.url} class="mini-card">
-  <div class="mini-card-body">
-    <span class="mini-tag">{note.data.category}</span>
-    <h3 class="mini-title">{note.data.title}</h3>
-    <p class="mini-summary">{note.data.description}</p>
-    <div class="mini-meta">
-      {dateLabel ? <time datetime={iso} class="mini-date">{dateLabel}</time> : <span class="mini-date"></span>}
-      <span class="mini-read">Read →</span>
-    </div>
+<a href={note.url} class="note-card">
+  <div class="flex items-center justify-between gap-2">
+    <span class="post-cat">{note.data.category}</span>
+    <time datetime={iso} class="post-date">{dateLabel}</time>
   </div>
+  <span class="post-title" style="font-size:.98rem">{note.data.title}</span>
+  {note.data.description && <p class="post-desc" style="margin-bottom:0">{note.data.description}</p>}
 </a>

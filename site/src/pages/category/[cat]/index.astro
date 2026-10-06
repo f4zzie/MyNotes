@@ -28,14 +28,14 @@ const jsonLd = [{
   seo={{ title: `${cat} Notes & Writeups`, description: `${blurb} ${list.length} writeups by f4zzie.`, jsonLd }}
   footer={{ noteCount: total, categoryCount: catCount }}
 >
-  <section class="border-b border-border py-14" style="background:linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent)">
+  <section class="border-b border-border bg-surface py-10">
     <div class="container">
-      <nav aria-label="Breadcrumb" class="mb-4 flex items-center gap-2 text-xs font-bold text-muted">
-        <a href="/" class="footer-link">Home</a><span>/</span>
-        <a href="/notes" class="footer-link">Notes</a>
+      <nav aria-label="Breadcrumb" class="mb-4 flex items-center gap-2 font-mono text-xs text-muted">
+        <a href="/" class="footer-link">~</a><span>/</span>
+        <a href="/notes" class="footer-link">writeups</a>
       </nav>
       <span class="category-badge">{list.length} writeups</span>
-      <h1 class="mt-4 text-4xl font-bold sm:text-5xl">{cat}</h1>
+      <h1 class="mt-4 text-3xl font-bold sm:text-4xl">{cat}</h1>
       <p class="mt-4 max-w-2xl text-muted">{blurb}</p>
     </div>
   </section>

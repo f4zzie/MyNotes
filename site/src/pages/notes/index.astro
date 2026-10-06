@@ -25,12 +25,12 @@ const jsonLd = [{
   seo={{ title: "Research Notes", description: `Browse all ${notes.length} cybersecurity research notes and writeups: malware analysis, binary exploitation, reverse engineering, HTB and CTF.`, jsonLd }}
   footer={{ noteCount: notes.length, categoryCount: categories.length }}
 >
-  <section class="border-b border-border bg-surface-2 py-14">
+  <section class="border-b border-border bg-surface py-10">
     <div class="container">
-      <span class="eyebrow">Archive</span>
-      <h1 class="mt-3 text-4xl font-bold sm:text-5xl">Research Notes</h1>
-      <p class="mt-4 max-w-2xl text-muted">
-        {notes.length} writeups across {categories.length} tracks. Search by title, tag, or keyword.
+      <span class="eyebrow">writeups</span>
+      <h1 class="mt-2 text-3xl font-bold sm:text-4xl">./writeups</h1>
+      <p class="mt-3 max-w-2xl text-muted">
+        {notes.length} writeups across {categories.length} tracks. grep by title, tag, or keyword.
       </p>
     </div>
   </section>
@@ -40,8 +40,8 @@ const jsonLd = [{
       <input
         id="note-search"
         type="search"
-        placeholder="Search notes — e.g. ROP, PE headers, HTB, format string…"
-        class="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-body outline-none focus:border-primary"
+        placeholder="$ grep -ri 'ROP | PE headers | HTB | format string' ./writeups"
+        class="search-input"
       />
 
       <div class="mt-5 flex flex-wrap gap-2" id="filter-bar">
@@ -58,20 +58,26 @@ const jsonLd = [{
         ))}
       </div>
 
-      <p id="empty" class="mt-10 hidden text-center text-muted">No notes match your search.</p>
+      <p id="empty" class="mt-10 hidden text-center text-muted">// no notes match your search.</p>
 
-      <div id="note-grid" class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div id="note-grid" class="feed mt-6">
         {notes.map((n) => (
           <a
             href={n.url}
-            class="note-item note-card"
+            class="note-item post-row"
             data-cat={n.data.category}
             data-tags={(n.data.tags || []).join(" ").toLowerCase()}
             data-search={`${n.data.title} ${n.data.category} ${(n.data.tags||[]).join(" ")} ${n.data.description}`.toLowerCase()}
           >
-            <span class="category-badge">{n.data.category}</span>
-            <h2 class="mt-4 text-lg font-bold text-heading">{n.data.title}</h2>
-            <p class="mt-2 line-clamp-3 text-sm leading-6 text-muted">{n.data.description}</p>
+            <span class="post-date">{n.data.date ? new Date(n.data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "——"}</span>
+            <div class="post-main">
+              <span class="post-cat">{n.data.category}</span>
+              <span class="post-title">{n.data.title}</span>
+              {n.data.description && <p class="post-desc">{n.data.description}</p>}
+              {n.data.tags?.length > 0 && (
+                <div class="post-tags">{n.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}</div>
+              )}
+            </div>
           </a>
         ))}
       </div>
