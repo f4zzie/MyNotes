@@ -1,0 +1,60 @@
+---
+import Base from "../layouts/Base.astro";
+import Panel from "../components/Panel.astro";
+import { SITE } from "../lib/site.mjs";
+import { getNotes } from "../lib/notes.mjs";
+
+const notes = await getNotes();
+
+// Group by year (newest first); undated notes bucket together under "Undated".
+// Future-proof: as soon as notes gain a `date:` field they split by year.
+const groups = new Map();
+for (const n of notes) {
+  const key = n.data.date ? new Date(n.data.date).getFullYear() : "Undated";
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key).push(n);
+}
+const years = [...groups.keys()].sort((a, b) => {
+  if (a === "Undated") return 1;
+  if (b === "Undated") return -1;
+  return b - a;
+});
+
+const fmt = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Archives",
+  url: `${SITE.url}/archives/`,
+  description: "Full archive of f4zzie.dev writeups.",
+}];
+---
+<Base
+  seo={{ title: "Archives", description: `Complete archive of all ${notes.length} f4zzie.dev writeups.`, jsonLd }}
+  footer={{ noteCount: notes.length }}
+>
+  <div class="page-head">
+    <span class="eyebrow">archives</span>
+    <h1>Archives</h1>
+    <p>Every writeup, {notes.length} in total.</p>
+  </div>
+
+  {years.length === 0 ? (
+    <div class="empty-state"><p class="es-msg">// archive is empty — writeups are being rebuilt.</p></div>
+  ) : years.map((y) => (
+    <>
+      <div class="arch-year">{y}</div>
+      <div class="arch-list">
+        {groups.get(y).map((n) => (
+          <div class="arch-item">
+            <a href={n.url}>{n.data.title}</a>
+            <span class="ai-cat">{n.data.date ? fmt(n.data.date) : n.data.category}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  ))}
+
+  <Panel slot="panel" />
+</Base>

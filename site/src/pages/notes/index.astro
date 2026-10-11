@@ -61,6 +61,9 @@ const jsonLd = [{
       <p id="empty" class="mt-10 hidden text-center text-muted">// no notes match your search.</p>
 
       <div id="note-grid" class="feed mt-6">
+        {notes.length === 0 && (
+          <div class="empty-state"><p class="es-line">$ ls ./writeups</p><p class="es-msg">// no writeups published yet — the vault is being rebuilt.</p></div>
+        )}
         {notes.map((n) => (
           <a
             href={n.url}

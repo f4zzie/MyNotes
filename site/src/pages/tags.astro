@@ -1,0 +1,46 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE } from "../lib/site.mjs";
+import { getNotes } from "../lib/notes.mjs";
+
+const notes = await getNotes();
+
+// tag -> count, sorted by frequency then name
+const counts = new Map();
+for (const n of notes) {
+  for (const t of n.data.tags || []) counts.set(t, (counts.get(t) || 0) + 1);
+}
+const tags = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Tags",
+  url: `${SITE.url}/tags/`,
+  description: "All tags across f4zzie.dev writeups.",
+}];
+---
+<Base
+  seo={{ title: "Tags", description: `All ${tags.length} tags across f4zzie.dev writeups — click any tag to filter the writeups.`, jsonLd }}
+  footer={{ noteCount: notes.length }}
+>
+  <section class="section">
+    <div class="container">
+      <div class="page-head">
+        <span class="eyebrow">tags</span>
+        <h1>Tags</h1>
+        <p>{tags.length} tags across {notes.length} writeups. Pick one to filter.</p>
+      </div>
+
+      <div class="tag-cloud">
+        {tags.length === 0 ? (
+          <div class="empty-state" style="width:100%"><p class="es-msg">// no tags yet — writeups are being rebuilt.</p></div>
+        ) : tags.map(([tag, count]) => (
+          <a href={`/notes?tag=${encodeURIComponent(tag.toLowerCase())}`} class="tag">
+            {tag} <b>{count}</b>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

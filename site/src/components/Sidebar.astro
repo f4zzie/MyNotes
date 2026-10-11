@@ -1,0 +1,65 @@
+---
+import { SITE } from "../lib/site.mjs";
+
+// Chirpy-style fixed left sidebar: avatar, name, tagline, vertical nav, socials.
+const path = Astro.url.pathname;
+const isActive = (href) => (href === "/" ? path === "/" : path.startsWith(href));
+
+const links = [
+  { href: "/", label: "Home", icon: "home" },
+  { href: "/notes", label: "Writeups", icon: "doc" },
+  { href: "/categories", label: "Categories", icon: "stack" },
+  { href: "/tags", label: "Tags", icon: "tag" },
+  { href: "/archives", label: "Archives", icon: "archive" },
+  { href: "/about", label: "About", icon: "info" },
+];
+
+// feather-style inline icons, keyed by name
+const icons = {
+  home: '<path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/>',
+  doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/>',
+  stack: '<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  tag: '<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
+  archive: '<rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+};
+---
+<aside id="sidebar">
+  <div class="sb-profile">
+    <a href="/" aria-label="f4zzie.dev home">
+      <img class="sb-avatar" src="/f4zzie.png" alt="f4zzie" width="110" height="110" />
+    </a>
+    <div class="sb-name"><a href="/">f4zzie<span class="at">@dev</span></a></div>
+    <p class="sb-tagline">Offensive Security · Binary Exploitation · Reverse Engineering</p>
+  </div>
+
+  <nav class="sb-nav" aria-label="Primary">
+    {links.map((l) => (
+      <a href={l.href} class={`sb-link ${isActive(l.href) ? "active" : ""}`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={icons[l.icon]} />
+        <span>{l.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  <div class="sb-foot">
+    <div class="sb-social">
+      <a href={SITE.github} target="_blank" rel="noreferrer me" aria-label="GitHub" class="icon-link">
+        <svg viewBox="0 0 24 24"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.23 1.92 1.23 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>
+      </a>
+      <a href={SITE.x} target="_blank" rel="noreferrer me" aria-label="X" class="icon-link">
+        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href={SITE.htb} target="_blank" rel="noreferrer" aria-label="Hack The Box" class="icon-link">
+        <svg viewBox="0 0 24 24"><path d="M11.996 0 1.66 6v12l10.336 6 10.343-6V6L11.996 0zm6.86 7.98v8.05l-6.86 3.98-6.853-3.98V7.98l6.853-3.98 6.86 3.98zm-6.86.02-4.02 2.33v.02l4.02 2.33 4.02-2.33-4.02-2.35z"/></svg>
+      </a>
+      <a href="/rss.xml" aria-label="RSS" class="icon-link">
+        <svg viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 1 1 0 4.36 2.18 2.18 0 0 1 0-4.36zM4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27zm0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93z"/></svg>
+      </a>
+      <a href={`mailto:${SITE.email}`} aria-label="Email" class="icon-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+      </a>
+    </div>
+    <p class="sb-copy">&copy; 2026 f4zzie.dev</p>
+  </div>
+</aside>

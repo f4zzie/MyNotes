@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import Panel from "../components/Panel.astro";
 import { SITE, slugifyCategory } from "../lib/site.mjs";
 import { getNotes, groupByCategory } from "../lib/notes.mjs";
 
@@ -7,24 +8,8 @@ const notes = await getNotes();
 const byCat = groupByCategory(notes);
 const categories = [...byCat.keys()];
 
-// Group the feed by year (undated notes bucket together, shown last).
-function yearOf(n) {
-  return n.data.date ? new Date(n.data.date).getFullYear() : null;
-}
-const groups = new Map();
-for (const n of notes) {
-  const key = yearOf(n) ?? "unsorted";
-  if (!groups.has(key)) groups.set(key, []);
-  groups.get(key).push(n);
-}
-const years = [...groups.keys()].sort((a, b) => {
-  if (a === "unsorted") return 1;
-  if (b === "unsorted") return -1;
-  return b - a;
-});
-
 const fmt = (d) =>
-  d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "——";
+  d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : null;
 
 const jsonLd = [
   {
@@ -51,70 +36,36 @@ const jsonLd = [
 ];
 ---
 <Base seo={{ jsonLd }} footer={{ noteCount: notes.length, categoryCount: categories.length }}>
-  <section class="section">
-    <div class="container">
-      <!-- PROFILE HEADER -->
-      <div class="profile">
-        <img class="profile-pic" src="/f4zzie.png" alt="f4zzie" width="96" height="96" />
-        <div class="profile-body">
-          <h1 class="profile-name">f4zzie</h1>
-          <p class="profile-role">Offensive Security · Binary Exploitation · Reverse Engineering</p>
-          <p class="profile-bio">
-            picoCTF writeups documenting the full method behind each solve — the reasoning,
-            the commands, and the verification. {notes.length} challenges across {categories.length} categories.
-          </p>
-          <div class="profile-links">
-            <a href={SITE.github} target="_blank" rel="noreferrer me" class="btn btn-outline">GitHub</a>
-            <a href={SITE.x} target="_blank" rel="noreferrer me" class="btn btn-outline">X</a>
-            <a href="/notes" class="btn btn-primary">Browse writeups</a>
-          </div>
-        </div>
-      </div>
+  <div class="page-head">
+    <span class="eyebrow">writeups</span>
+    <h1>Latest writeups</h1>
+    <p>
+      {notes.length > 0
+        ? `${notes.length} challenges across ${categories.length} categories — the full method behind each solve: the reasoning, the commands, and the verification.`
+        : "The vault is being rebuilt from scratch. New writeups are on the way."}
+    </p>
+  </div>
 
-      <!-- WRITEUP FEED -->
-      <div class="section-header" style="margin-top:2.5rem">
-        <h2 class="section-title">writeups</h2>
-        <a href="/notes" class="view-all">browse all & search →</a>
-      </div>
-
-      {years.map((y) => (
-        <>
-          <div class="year-head">{y === "unsorted" ? "// unsorted" : y}</div>
-          <div class="feed">
-            {groups.get(y).map((n) => (
-              <a href={n.url} class="post-row">
-                <span class="post-date">{fmt(n.data.date)}</span>
-                <div class="post-main">
-                  <span class="post-cat">{n.data.category}</span>
-                  <span class="post-title">{n.data.title}</span>
-                  {n.data.description && <p class="post-desc">{n.data.description}</p>}
-                  {n.data.tags?.length > 0 && (
-                    <div class="post-tags">
-                      {n.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}
-                    </div>
-                  )}
-                </div>
-              </a>
-            ))}
-          </div>
-        </>
-      ))}
-
-      <!-- TRACKS (compact, text-first) -->
-      <div class="section-header" style="margin-top:3rem">
-        <h2 class="section-title">tracks</h2>
-        <a href="/notes" class="view-all">filter by track →</a>
-      </div>
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((c) => (
-          <a href={`/category/${slugifyCategory(c)}/`} class="note-card">
-            <div class="flex items-center justify-between gap-2">
-              <span class="post-cat">{c}</span>
-              <span class="post-date">{byCat.get(c).length} notes</span>
-            </div>
-          </a>
-        ))}
-      </div>
+  {notes.length === 0 ? (
+    <div class="empty-state">
+      <p class="es-line">$ ls ./writeups</p>
+      <p class="es-msg">// no writeups published yet — check back soon.</p>
     </div>
-  </section>
+  ) : (
+    <div class="feed">
+      {notes.map((n) => (
+        <a href={n.url} class="post-card">
+          <span class="pc-cat">{n.data.category}</span>
+          <h2>{n.data.title}</h2>
+          {n.data.description && <p class="pc-desc">{n.data.description}</p>}
+          <div class="pc-meta">
+            {fmt(n.data.date) && <time>{fmt(n.data.date)}</time>}
+            {n.data.tags?.slice(0, 4).map((t) => <span class="tag">{t}</span>)}
+          </div>
+        </a>
+      ))}
+    </div>
+  )}
+
+  <Panel slot="panel" />
 </Base>

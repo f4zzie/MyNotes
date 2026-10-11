@@ -1,0 +1,42 @@
+---
+import Base from "../layouts/Base.astro";
+import Panel from "../components/Panel.astro";
+import { SITE, CATEGORY_META, slugifyCategory } from "../lib/site.mjs";
+import { getNotes, groupByCategory } from "../lib/notes.mjs";
+
+const notes = await getNotes();
+const byCat = groupByCategory(notes);
+const categories = [...byCat.keys()].sort((a, b) => a.localeCompare(b));
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Categories",
+  url: `${SITE.url}/categories/`,
+  description: "All writeup categories on f4zzie.dev.",
+}];
+---
+<Base
+  seo={{ title: "Categories", description: `Browse ${notes.length} writeups across ${categories.length} categories: binary exploitation, reverse engineering, web exploitation, general skills and blockchain.`, jsonLd }}
+  footer={{ noteCount: notes.length, categoryCount: categories.length }}
+>
+  <div class="page-head">
+    <span class="eyebrow">categories</span>
+    <h1>Categories</h1>
+    <p>{categories.length} tracks, {notes.length} writeups in total.</p>
+  </div>
+
+  {categories.length === 0 ? (
+    <div class="empty-state"><p class="es-msg">// no categories yet — writeups are being rebuilt.</p></div>
+  ) : categories.map((c) => (
+    <a href={`/category/${slugifyCategory(c)}/`} class="cat-row">
+      <div>
+        <div class="cr-name">{c}</div>
+        {CATEGORY_META[c]?.blurb && <div class="cr-blurb">{CATEGORY_META[c].blurb}</div>}
+      </div>
+      <span class="cr-count">{byCat.get(c).length}</span>
+    </a>
+  ))}
+
+  <Panel slot="panel" />
+</Base>

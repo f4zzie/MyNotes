@@ -1,0 +1,43 @@
+---
+import { getNotes } from "../lib/notes.mjs";
+import { slugifyCategory } from "../lib/site.mjs";
+
+// Right-hand widgets, Chirpy-style: recently added + trending tags.
+// Fetches the collection itself so pages don't have to drill props.
+const notes = await getNotes();
+const recent = notes.slice(0, 5);
+
+const counts = new Map();
+for (const n of notes) {
+  for (const t of n.data.tags || []) counts.set(t, (counts.get(t) || 0) + 1);
+}
+const trending = [...counts.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .slice(0, 12);
+---
+<div class="widget">
+  <h2 class="widget-title">recently added</h2>
+  {recent.length > 0 ? (
+    <div class="widget-list">
+      {recent.map((n) => (
+        <a href={n.url} class="widget-item">
+          {n.data.title}
+          <small>{n.data.category}</small>
+        </a>
+      ))}
+    </div>
+  ) : (
+    <p class="widget-item" style="color:var(--color-muted)">// nothing published yet</p>
+  )}
+</div>
+
+{trending.length > 0 && (
+  <div class="widget">
+    <h2 class="widget-title">trending tags</h2>
+    <div class="widget-tags">
+      {trending.map(([tag, count]) => (
+        <a href={`/notes?tag=${encodeURIComponent(tag.toLowerCase())}`} class="tag" title={`${count} writeups`}>{tag}</a>
+      ))}
+    </div>
+  </div>
+)}

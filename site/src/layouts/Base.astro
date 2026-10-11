@@ -1,11 +1,12 @@
 ---
 import "../styles/global.css";
 import SEO from "../components/SEO.astro";
-import Navbar from "../components/Navbar.astro";
+import Sidebar from "../components/Sidebar.astro";
 import Footer from "../components/Footer.astro";
 import VisitorTracker from "../components/VisitorTracker.astro";
 
 const { seo = {}, footer = {} } = Astro.props;
+const hasPanel = Astro.slots.has("panel");
 ---
 <!doctype html>
 <html lang="en" data-theme="dark">
@@ -19,7 +20,7 @@ const { seo = {}, footer = {} } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <!-- no-flash theme: apply saved theme (or OS preference) before first paint -->
@@ -35,12 +36,49 @@ const { seo = {}, footer = {} } = Astro.props;
     </script>
     <SEO {...seo} />
   </head>
-  <body class="flex min-h-screen flex-col">
-    <Navbar />
-    <main class="flex-1">
-      <slot />
-    </main>
-    <Footer noteCount={footer.noteCount} categoryCount={footer.categoryCount} />
+  <body>
+    <Sidebar />
+    <div id="sidebar-backdrop"></div>
+
+    <div class="main-wrap">
+      <div id="mobile-topbar">
+        <a href="/" class="logo" aria-label="f4zzie.dev home">
+          <span class="p">f4zzie</span><span class="u">@dev</span><span class="path">:~$</span>
+        </a>
+        <button id="nav-toggle" class="icon-btn" aria-label="Open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+
+      <main class="flex-1">
+        {hasPanel ? (
+          <div class="shell-grid">
+            <div class="shell-content"><slot /></div>
+            <aside class="shell-panel"><slot name="panel" /></aside>
+          </div>
+        ) : (
+          <slot />
+        )}
+      </main>
+
+      <Footer noteCount={footer.noteCount} categoryCount={footer.categoryCount} />
+    </div>
+
     <VisitorTracker />
+
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById("nav-toggle");
+        var sb = document.getElementById("sidebar");
+        var bd = document.getElementById("sidebar-backdrop");
+        function close() { sb.classList.remove("open"); bd.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); }
+        btn && btn.addEventListener("click", function () {
+          var open = sb.classList.toggle("open");
+          bd.classList.toggle("open", open);
+          btn.setAttribute("aria-expanded", String(open));
+        });
+        bd && bd.addEventListener("click", close);
+      })();
+    </script>
   </body>
 </html>
