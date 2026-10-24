@@ -76,7 +76,7 @@ export const CATEGORY_META = {
 };
 
 export function categoryColor(name) {
-  return "#2dd4bf";
+  return CATEGORY_META[name]?.color || "#2dd4bf";
 }
 export function categoryBlurb(name) {
   return CATEGORY_META[name]?.blurb || "";

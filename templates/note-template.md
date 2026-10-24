@@ -5,6 +5,7 @@ category: "picoCTF - Web Exploitation"
 tags: ["picoctf", "web-exploitation"]
 date: 2026-08-04
 published: true
+status: "official"
 ---
 
 # Note Title

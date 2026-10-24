@@ -1,15 +1,13 @@
 ---
 import { SITE } from "../lib/site.mjs";
-const year = 2026;
+const year = new Date().getFullYear();
 const { noteCount = 0, categoryCount = 0 } = Astro.props;
 ---
 <footer class="site-footer">
   <div class="container">
     <div class="footer-grid">
       <div>
-        <a href="/" class="logo" aria-label="f4zzie.dev home">
-          <span class="p">f4zzie</span><span class="u">@dev</span><span class="path">:~$</span>
-        </a>
+        <a href="/" class="logo" aria-label="f4zzie.dev home"><span class="u">f4zzie.dev</span></a>
         <p class="footer-tagline">
           A public archive of cybersecurity research — malware analysis, reverse engineering,
           binary exploitation, Hack The Box and CTF writeups.
@@ -30,10 +28,10 @@ const { noteCount = 0, categoryCount = 0 } = Astro.props;
       <div>
         <h2 class="footer-col-title">tracks</h2>
         <div class="footer-nav">
-          <a href="/category/picoctf-binary-exploitation" class="footer-link">binary exploitation</a>
-          <a href="/category/picoctf-reverse-engineering" class="footer-link">reverse engineering</a>
-          <a href="/category/picoctf-web-exploitation" class="footer-link">web exploitation</a>
-          <a href="/category/picoctf-general-skills" class="footer-link">general skills</a>
+          <a href="/categories" class="footer-link">all categories</a>
+          <a href="/tags" class="footer-link">browse tags</a>
+          <a href="/archives" class="footer-link">archive timeline</a>
+          <a href="/notes" class="footer-link">latest writeups</a>
         </div>
       </div>
 

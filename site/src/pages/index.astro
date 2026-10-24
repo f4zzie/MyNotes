@@ -1,15 +1,16 @@
 ---
 import Base from "../layouts/Base.astro";
 import Panel from "../components/Panel.astro";
-import { SITE, slugifyCategory } from "../lib/site.mjs";
-import { getNotes, groupByCategory } from "../lib/notes.mjs";
+import { SITE } from "../lib/site.mjs";
+import { getNotes } from "../lib/notes.mjs";
 
 const notes = await getNotes();
-const byCat = groupByCategory(notes);
-const categories = [...byCat.keys()];
+const categories = new Set(notes.map((n) => n.data.category));
+const tags = new Set(notes.flatMap((n) => n.data.tags || []));
 
 const fmt = (d) =>
   d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : null;
+const mark = (category) => category.split(/[^a-z0-9]+/i).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
 const jsonLd = [
   {
@@ -35,37 +36,40 @@ const jsonLd = [
   },
 ];
 ---
-<Base seo={{ jsonLd }} footer={{ noteCount: notes.length, categoryCount: categories.length }}>
-  <div class="page-head">
-    <span class="eyebrow">writeups</span>
-    <h1>Latest writeups</h1>
-    <p>
-      {notes.length > 0
-        ? `${notes.length} challenges across ${categories.length} categories — the full method behind each solve: the reasoning, the commands, and the verification.`
-        : "The vault is being rebuilt from scratch. New writeups are on the way."}
-    </p>
-  </div>
+<Base seo={{ jsonLd }} footer={{ noteCount: notes.length, categoryCount: categories.size }}>
+  <section class="home-intro">
+    <div>
+      <span class="eyebrow">home</span>
+      <h1>Research notes</h1>
+      <p>Field notes on offensive security, reverse engineering, malware analysis, and CTFs.</p>
+    </div>
+    <div class="home-index" aria-label="Archive summary">
+      <span>{notes.length} notes</span>
+      <span>{categories.size} categories</span>
+      <span>{tags.size} tags</span>
+    </div>
+  </section>
 
-  {notes.length === 0 ? (
-    <div class="empty-state">
-      <p class="es-line">$ ls ./writeups</p>
-      <p class="es-msg">// no writeups published yet — check back soon.</p>
-    </div>
-  ) : (
-    <div class="feed">
-      {notes.map((n) => (
-        <a href={n.url} class="post-card">
-          <span class="pc-cat">{n.data.category}</span>
-          <h2>{n.data.title}</h2>
-          {n.data.description && <p class="pc-desc">{n.data.description}</p>}
-          <div class="pc-meta">
-            {fmt(n.data.date) && <time>{fmt(n.data.date)}</time>}
-            {n.data.tags?.slice(0, 4).map((t) => <span class="tag">{t}</span>)}
-          </div>
-        </a>
-      ))}
-    </div>
-  )}
+  <section class="home-listing">
+    <div class="section-bar"><h2>Recently updated</h2><a href="/notes" class="view-all">Browse all →</a></div>
+    {notes.length === 0 ? (
+      <div class="empty-state"><p class="es-line">$ ls ./writeups</p><p class="es-msg">// no writeups published yet — check back soon.</p></div>
+    ) : (
+      <div class="home-feed">
+        {notes.slice(0, 8).map((n) => (
+          <a href={n.url} class="home-card">
+            <div class="home-card-copy">
+              <div class="pc-topline"><span class="pc-cat">{n.data.category}</span>{fmt(n.data.date) && <time>{fmt(n.data.date)}</time>}</div>
+              <h2>{n.data.title}</h2>
+              {n.data.description && <p class="pc-desc">{n.data.description}</p>}
+              <div class="pc-meta">{n.data.tags?.slice(0, 4).map((t) => <span class="tag">{t}</span>)}</div>
+            </div>
+            <div class="home-card-art" aria-hidden="true"><span>{mark(n.data.category)}</span><small>f4zzie.dev</small></div>
+          </a>
+        ))}
+      </div>
+    )}
+  </section>
 
   <Panel slot="panel" />
 </Base>

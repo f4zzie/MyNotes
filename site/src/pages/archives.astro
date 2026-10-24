@@ -2,9 +2,9 @@
 import Base from "../layouts/Base.astro";
 import Panel from "../components/Panel.astro";
 import { SITE } from "../lib/site.mjs";
-import { getNotes } from "../lib/notes.mjs";
+import { getArchiveNotes } from "../lib/notes.mjs";
 
-const notes = await getNotes();
+const notes = await getArchiveNotes();
 
 // Group by year (newest first); undated notes bucket together under "Undated".
 // Future-proof: as soon as notes gain a `date:` field they split by year.
@@ -37,7 +37,7 @@ const jsonLd = [{
   <div class="page-head">
     <span class="eyebrow">archives</span>
     <h1>Archives</h1>
-    <p>Every writeup, {notes.length} in total.</p>
+  <p>Legacy and unpublished writeups, {notes.length} in total. Official notes will appear in <a href="/notes" class="footer-link">/notes</a> after promotion.</p>
   </div>
 
   {years.length === 0 ? (

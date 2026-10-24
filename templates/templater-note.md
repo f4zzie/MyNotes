@@ -5,6 +5,7 @@ category: "CTF Writeup"
 tags: []
 date: <% tp.date.now("YYYY-MM-DD") %>
 published: true
+status: "official"
 ---
 
 # <% tp.file.title %>

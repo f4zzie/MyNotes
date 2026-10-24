@@ -8,7 +8,7 @@ import { remarkWikilinkImages } from "./src/plugins/remark-wikilink-images.mjs";
 
 // note folder -> slug -> mtime, scanned once at config load for sitemap lastmod
 // (notes carry no `date:` field, so the file's modified time is the best signal)
-const CONTENT_ROOT = join(import.meta.dirname, "..", "content");
+const CONTENT_ROOT = join(import.meta.dirname, "..", "pending");
 const NOTE_DATES = new Map();
 function scan(dir) {
   for (const entry of readdirSync(dir)) {

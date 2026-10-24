@@ -3,10 +3,10 @@ import Base from "../../layouts/Base.astro";
 import NoteCard from "../../components/NoteCard.astro";
 import { render } from "astro:content";
 import { SITE, slugifyCategory } from "../../lib/site.mjs";
-import { getNotes, relatedNotes } from "../../lib/notes.mjs";
+import { getArchiveNotes, relatedNotes } from "../../lib/notes.mjs";
 
 export async function getStaticPaths() {
-  const notes = await getNotes();
+  const notes = await getArchiveNotes();
   return notes.map((note) => ({
     params: { slug: note.id },
     props: { note, all: notes },
