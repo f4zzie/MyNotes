@@ -4,7 +4,9 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { slug as githubSlug } from "github-slugger";
 import { remarkWikilinkImages } from "./src/plugins/remark-wikilink-images.mjs";
+import { remarkWikilinks } from "./src/plugins/remark-wikilinks.mjs";
 
 // note folder -> slug -> mtime, scanned once at config load for sitemap lastmod
 // (notes carry no `date:` field, so the file's modified time is the best signal)
@@ -15,7 +17,9 @@ function scan(dir) {
     const p = join(dir, entry);
     if (statSync(p).isDirectory()) scan(p);
     else if (entry.endsWith(".md")) {
-      const key = relative(CONTENT_ROOT, p).replace(/\\/g, "/").replace(/\.md$/, "");
+      // same id rules as Astro's glob loader: slug each segment, drop trailing /index
+      const key = relative(CONTENT_ROOT, p).replace(/\\/g, "/").replace(/\.md$/, "")
+        .split("/").map((seg) => githubSlug(seg)).join("/").replace(/\/index$/, "");
       NOTE_DATES.set(key, statSync(p).mtime.toISOString());
     }
   }
@@ -40,7 +44,7 @@ export default defineConfig({
       theme: "github-dark",
       wrap: false,
     },
-    remarkPlugins: [remarkWikilinkImages],
+    remarkPlugins: [remarkWikilinkImages, remarkWikilinks],
   },
   vite: {
     plugins: [tailwindcss()],

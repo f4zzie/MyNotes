@@ -1,19 +1,21 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { slugifyCategory, SITE } from "../../lib/site.mjs";
-import { getNotes, groupByCategory } from "../../lib/notes.mjs";
+import NoteListing from "../../components/NoteListing.astro";
+import { SITE } from "../../lib/site.mjs";
+import { getFieldManualNotes, groupByCategory } from "../../lib/notes.mjs";
 
-const notes = await getNotes();
-const byCat = groupByCategory(notes);
-const categories = [...byCat.keys()];
-const allTags = [...new Set(notes.flatMap((n) => n.data.tags || []))].sort();
+// Notes section = the CPTS field manual, listed in vault order (phase folders).
+const notes = (await getFieldManualNotes()).sort((a, b) => a.id.localeCompare(b.id));
+const hub = notes.find((n) => n.id === "field-manual");
+const phases = new Set(notes.map((n) => n.id.split("/")[1]).filter((p) => /^\d+-/.test(p || "")));
+const categoryCount = groupByCategory(notes).size;
 
 const jsonLd = [{
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  name: "Research Notes",
+  name: "Notes — CPTS Field Manual",
   url: `${SITE.url}/notes/`,
-  description: "All cybersecurity research notes and writeups by f4zzie.",
+  description: "The CPTS & internal pentesting field manual by f4zzie: phase-by-phase checklists, commands and methodology.",
   hasPart: notes.slice(0, 50).map((n) => ({
     "@type": "TechArticle",
     headline: n.data.title,
@@ -22,125 +24,25 @@ const jsonLd = [{
 }];
 ---
 <Base
-  seo={{ title: "Research Notes", description: `Browse all ${notes.length} cybersecurity research notes and writeups: malware analysis, binary exploitation, reverse engineering, HTB and CTF.`, jsonLd }}
-  footer={{ noteCount: notes.length, categoryCount: categories.length }}
+  seo={{ title: "Notes — CPTS Field Manual", description: `The CPTS field manual: ${notes.length} pages across ${phases.size} phases of internal penetration testing — enumeration, exploitation, privilege escalation, lateral movement, procedures and tooling.`, jsonLd }}
+  footer={{ noteCount: notes.length, categoryCount }}
 >
   <section class="border-b border-border bg-surface py-10">
     <div class="container">
-      <span class="eyebrow">writeups</span>
-      <h1 class="mt-2 text-3xl font-bold sm:text-4xl">./writeups</h1>
+      <span class="eyebrow">notes</span>
+      <h1 class="mt-2 text-3xl font-bold sm:text-4xl">./notes</h1>
       <p class="mt-3 max-w-2xl text-muted">
-        {notes.length} writeups across {categories.length} tracks. grep by title, tag, or keyword.
+        The CPTS &amp; internal pentesting field manual: {notes.length} pages across {phases.size} phases.
+        grep by title, tag, or keyword, or start from the phase-by-phase map.
       </p>
+      {hub && (
+        <div class="mt-5 flex flex-wrap gap-3">
+          <a href={hub.url} class="btn btn-primary">Open the field manual hub →</a>
+          <a href="/writeups" class="btn btn-outline">Looking for writeups?</a>
+        </div>
+      )}
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <input
-        id="note-search"
-        type="search"
-        placeholder="$ grep -ri 'ROP | PE headers | HTB | format string' ./writeups"
-        class="search-input"
-      />
-
-      <div class="mt-5 flex flex-wrap gap-2" id="filter-bar">
-        <button class="filter-pill active" data-cat="all">All ({notes.length})</button>
-        {categories.map((c) => (
-          <button class="filter-pill" data-cat={c}>{c} ({byCat.get(c).length})</button>
-        ))}
-      </div>
-
-      <div id="tag-bar" class="mt-3 flex flex-wrap gap-2">
-        <button class="filter-pill active" data-tag="all">All tags</button>
-        {allTags.map((t) => (
-          <button class="filter-pill" data-tag={t.toLowerCase()}>{t}</button>
-        ))}
-      </div>
-
-      <p id="empty" class="mt-10 hidden text-center text-muted">// no notes match your search.</p>
-
-      <div id="note-grid" class="feed mt-6">
-        {notes.length === 0 && (
-          <div class="empty-state"><p class="es-line">$ ls ./writeups</p><p class="es-msg">// no writeups published yet — the vault is being rebuilt.</p></div>
-        )}
-        {notes.map((n) => (
-          <a
-            href={n.url}
-            class="note-item post-row"
-            data-cat={n.data.category}
-            data-tags={(n.data.tags || []).join(" ").toLowerCase()}
-            data-search={`${n.data.title} ${n.data.category} ${(n.data.tags||[]).join(" ")} ${n.data.description}`.toLowerCase()}
-          >
-            <span class="post-date">{n.data.date ? new Date(n.data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "——"}</span>
-            <div class="post-main">
-              <span class="post-cat">{n.data.category}</span>
-              <span class="post-title">{n.data.title}</span>
-              {n.data.description && <p class="post-desc">{n.data.description}</p>}
-              {n.data.tags?.length > 0 && (
-                <div class="post-tags">{n.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}</div>
-              )}
-            </div>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <script is:inline>
-    (function () {
-      const search = document.getElementById("note-search");
-      const items = Array.from(document.querySelectorAll(".note-item"));
-      const pills = Array.from(document.querySelectorAll("#filter-bar .filter-pill"));
-      const tagPills = Array.from(document.querySelectorAll("#tag-bar .filter-pill"));
-      const empty = document.getElementById("empty");
-      let cat = "all";
-      let tag = "all";
-
-      // preselect from ?q= (SearchAction), ?cat= and ?tag=
-      const params = new URLSearchParams(location.search);
-      if (params.get("q")) search.value = params.get("q");
-      function preselect(group, buttons, value) {
-        const b = buttons.find((x) => x.dataset[group] === value);
-        if (b) {
-          buttons.forEach((x) => x.classList.remove("active"));
-          b.classList.add("active");
-        }
-      }
-      if (params.get("cat")) { cat = params.get("cat"); preselect("cat", pills, cat); }
-      if (params.get("tag")) { tag = params.get("tag"); preselect("tag", tagPills, tag); }
-
-      function apply() {
-        const q = search.value.trim().toLowerCase();
-        let shown = 0;
-        for (const el of items) {
-          const okCat = cat === "all" || el.dataset.cat === cat;
-          const okTag = tag === "all" || el.dataset.tags.includes(tag);
-          const okQ = !q || el.dataset.search.includes(q);
-          const show = okCat && okTag && okQ;
-          el.style.display = show ? "" : "none";
-          if (show) shown++;
-        }
-        empty.classList.toggle("hidden", shown > 0);
-      }
-      search.addEventListener("input", apply);
-      pills.forEach((p) =>
-        p.addEventListener("click", () => {
-          pills.forEach((x) => x.classList.remove("active"));
-          p.classList.add("active");
-          cat = p.dataset.cat;
-          apply();
-        })
-      );
-      tagPills.forEach((p) =>
-        p.addEventListener("click", () => {
-          tagPills.forEach((x) => x.classList.remove("active"));
-          p.classList.add("active");
-          tag = p.dataset.tag;
-          apply();
-        })
-      );
-      apply();
-    })();
-  </script>
+  <NoteListing notes={notes} dir="./notes" placeholder="$ grep -ri 'kerberoast | pivoting | SMB | privesc' ./notes" />
 </Base>

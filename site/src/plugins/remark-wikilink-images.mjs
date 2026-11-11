@@ -2,6 +2,7 @@
  * Turns Obsidian image embeds ![[name.png]] into standard markdown images
  * pointing at /images/name.png (served from public/images, synced from ../images).
  * Also handles ![[name.png|alt]] syntax. Non-image embeds are left untouched.
+ * Images load lazily and link to the original, full-resolution asset.
  */
 import { visit } from "unist-util-visit";
 
@@ -24,10 +25,26 @@ export function remarkWikilinkImages() {
         if (!IMG_EXT.test(target)) continue; // only image embeds
         if (m.index > last) parts.push({ type: "text", value: value.slice(last, m.index) });
         const file = target.split("/").pop();
-        parts.push({
+        const url = `/images/${encodeURIComponent(file)}`;
+        const image = {
           type: "image",
-          url: `/images/${encodeURIComponent(file)}`,
+          url,
           alt: (rawAlt || file.replace(IMG_EXT, "").replace(/[_-]+/g, " ")).trim(),
+          data: { hProperties: { loading: "lazy", decoding: "async" } },
+        };
+        // Do not create nested anchors when an embed already sits inside a link.
+        parts.push(parent.type === "link" || parent.type === "linkReference" ? image : {
+          type: "link",
+          url,
+          title: "Open image at full resolution (new tab)",
+          data: {
+            hProperties: {
+              className: ["screenshot-link"],
+              target: "_blank",
+              rel: ["noopener", "noreferrer"],
+            },
+          },
+          children: [image],
         });
         last = m.index + full.length;
       }

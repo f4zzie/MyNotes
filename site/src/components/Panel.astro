@@ -1,5 +1,5 @@
 ---
-import { getNotes } from "../lib/notes.mjs";
+import { getNotes, tagListingUrl } from "../lib/notes.mjs";
 import { slugifyCategory } from "../lib/site.mjs";
 
 // Right-hand widgets, Chirpy-style: recently added + trending tags.
@@ -36,7 +36,7 @@ const trending = [...counts.entries()]
     <h2 class="widget-title">trending tags</h2>
     <div class="widget-tags">
       {trending.map(([tag, count]) => (
-        <a href={`/notes?tag=${encodeURIComponent(tag.toLowerCase())}`} class="tag" title={`${count} writeups`}>{tag}</a>
+        <a href={tagListingUrl(notes, tag)} class="tag" title={`${count} writeups`}>{tag}</a>
       ))}
     </div>
   </div>

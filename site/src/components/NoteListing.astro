@@ -1,0 +1,118 @@
+---
+// Searchable note listing shared by the two section indexes (/notes, /writeups):
+// search box, category pills, tag pills, ?q= / ?cat= / ?tag= preselect.
+import { groupByCategory } from "../lib/notes.mjs";
+
+const { notes, placeholder, dir } = Astro.props;
+const byCat = groupByCategory(notes);
+const categories = [...byCat.keys()];
+const allTags = [...new Set(notes.flatMap((n) => n.data.tags || []))].sort();
+---
+  <section class="section">
+    <div class="container">
+      <input
+        id="note-search"
+        type="search"
+        placeholder={placeholder}
+        class="search-input"
+      />
+
+      <div class="mt-5 flex flex-wrap gap-2" id="filter-bar">
+        <button class="filter-pill active" data-cat="all">All ({notes.length})</button>
+        {categories.map((c) => (
+          <button class="filter-pill" data-cat={c}>{c} ({byCat.get(c).length})</button>
+        ))}
+      </div>
+
+      <div id="tag-bar" class="mt-3 flex flex-wrap gap-2">
+        <button class="filter-pill active" data-tag="all">All tags</button>
+        {allTags.map((t) => (
+          <button class="filter-pill" data-tag={t.toLowerCase()}>{t}</button>
+        ))}
+      </div>
+
+      <p id="empty" class="mt-10 hidden text-center text-muted">// no notes match your search.</p>
+
+      <div id="note-grid" class="feed mt-6">
+        {notes.length === 0 && (
+          <div class="empty-state"><p class="es-line">$ ls {dir}</p><p class="es-msg">// nothing published here yet — the vault is being rebuilt.</p></div>
+        )}
+        {notes.map((n) => (
+          <a
+            href={n.url}
+            class="note-item post-row"
+            data-cat={n.data.category}
+            data-tags={(n.data.tags || []).join(" ").toLowerCase()}
+            data-search={`${n.data.title} ${n.data.category} ${(n.data.tags||[]).join(" ")} ${n.data.description}`.toLowerCase()}
+          >
+            <span class="post-date">{n.data.date ? new Date(n.data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "——"}</span>
+            <div class="post-main">
+              <span class="post-cat">{n.data.category}</span>
+              <span class="post-title">{n.data.title}</span>
+              {n.data.description && <p class="post-desc">{n.data.description}</p>}
+              {n.data.tags?.length > 0 && (
+                <div class="post-tags">{n.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}</div>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      const search = document.getElementById("note-search");
+      const items = Array.from(document.querySelectorAll(".note-item"));
+      const pills = Array.from(document.querySelectorAll("#filter-bar .filter-pill"));
+      const tagPills = Array.from(document.querySelectorAll("#tag-bar .filter-pill"));
+      const empty = document.getElementById("empty");
+      let cat = "all";
+      let tag = "all";
+
+      // preselect from ?q= (SearchAction), ?cat= and ?tag=
+      const params = new URLSearchParams(location.search);
+      if (params.get("q")) search.value = params.get("q");
+      function preselect(group, buttons, value) {
+        const b = buttons.find((x) => x.dataset[group] === value);
+        if (b) {
+          buttons.forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+        }
+      }
+      if (params.get("cat")) { cat = params.get("cat"); preselect("cat", pills, cat); }
+      if (params.get("tag")) { tag = params.get("tag"); preselect("tag", tagPills, tag); }
+
+      function apply() {
+        const q = search.value.trim().toLowerCase();
+        let shown = 0;
+        for (const el of items) {
+          const okCat = cat === "all" || el.dataset.cat === cat;
+          const okTag = tag === "all" || el.dataset.tags.includes(tag);
+          const okQ = !q || el.dataset.search.includes(q);
+          const show = okCat && okTag && okQ;
+          el.style.display = show ? "" : "none";
+          if (show) shown++;
+        }
+        empty.classList.toggle("hidden", shown > 0);
+      }
+      search.addEventListener("input", apply);
+      pills.forEach((p) =>
+        p.addEventListener("click", () => {
+          pills.forEach((x) => x.classList.remove("active"));
+          p.classList.add("active");
+          cat = p.dataset.cat;
+          apply();
+        })
+      );
+      tagPills.forEach((p) =>
+        p.addEventListener("click", () => {
+          tagPills.forEach((x) => x.classList.remove("active"));
+          p.classList.add("active");
+          tag = p.dataset.tag;
+          apply();
+        })
+      );
+      apply();
+    })();
+  </script>

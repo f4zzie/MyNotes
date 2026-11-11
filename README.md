@@ -9,6 +9,32 @@ to be fast, accessible, and discoverable on search.
 
 **Live site:** https://f4zzie.dev/
 
+## Published writeups
+
+1. [Active — Hack The Box](https://f4zzie.dev/notes/htb-writeup/active/) — October 25, 2026.
+   Anonymous SMB, Group Policy Preferences password recovery, and Kerberoasting.
+   [Read in the vault](pending/htb-writeup/active.md).
+
+## Publishing from the vault
+
+The Astro site in `site/` reads Markdown directly from `pending/`.
+Notes with `published: true` and `status: official` appear on the homepage,
+writeup listing, category pages, tags, and RSS. Other published notes remain in the archive.
+
+Store screenshots in `images/` and embed them as `![[filename.png|Descriptive alt text]]`.
+The build copies those images to the website; screenshot links open the original resolution.
+
+To check the site locally:
+
+```bash
+cd site
+npm ci
+npm test
+npm run build
+npm run preview
+```
+
+Pushing to `main` publishes through the existing GitHub Pages workflow at `f4zzie.dev`.
 
 ## Connect
 

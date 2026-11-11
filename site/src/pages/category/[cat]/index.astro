@@ -2,10 +2,10 @@
 import Base from "../../../layouts/Base.astro";
 import NoteCard from "../../../components/NoteCard.astro";
 import { SITE, CATEGORY_META, slugifyCategory } from "../../../lib/site.mjs";
-import { getNotes, groupByCategory } from "../../../lib/notes.mjs";
+import { getArchiveNotes, groupByCategory } from "../../../lib/notes.mjs";
 
 export async function getStaticPaths() {
-  const notes = await getNotes();
+  const notes = await getArchiveNotes();
   const byCat = groupByCategory(notes);
   return [...byCat.entries()].map(([cat, list]) => ({
     params: { cat: slugifyCategory(cat) },
@@ -32,7 +32,7 @@ const jsonLd = [{
     <div class="container">
       <nav aria-label="Breadcrumb" class="mb-4 flex items-center gap-2 font-mono text-xs text-muted">
         <a href="/" class="footer-link">~</a><span>/</span>
-        <a href="/notes" class="footer-link">writeups</a>
+        <a href={cat === "Field Manual" ? "/notes" : "/writeups"} class="footer-link">{cat === "Field Manual" ? "notes" : "writeups"}</a>
       </nav>
       <span class="category-badge">{list.length} writeups</span>
       <h1 class="mt-4 text-3xl font-bold sm:text-4xl">{cat}</h1>

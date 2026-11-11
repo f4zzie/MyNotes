@@ -1,9 +1,9 @@
 import rss from "@astrojs/rss";
 import { SITE } from "../lib/site.mjs";
-import { getNotes } from "../lib/notes.mjs";
+import { getArchiveNotes } from "../lib/notes.mjs";
 
 export async function GET(context) {
-  const notes = await getNotes();
+  const notes = await getArchiveNotes();
   return rss({
     title: SITE.name,
     description: SITE.description,

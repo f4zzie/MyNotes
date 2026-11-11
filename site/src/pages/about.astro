@@ -1,9 +1,9 @@
 ---
 import Base from "../layouts/Base.astro";
 import { SITE } from "../lib/site.mjs";
-import { getNotes, groupByCategory } from "../lib/notes.mjs";
+import { getArchiveNotes, groupByCategory } from "../lib/notes.mjs";
 
-const notes = await getNotes();
+const notes = await getArchiveNotes();
 const byCat = groupByCategory(notes);
 
 const focusAreas = [
@@ -53,7 +53,8 @@ const jsonLd = [{
         <div class="mt-8 flex flex-wrap gap-3">
           <a href={SITE.github} target="_blank" rel="noreferrer me" class="btn btn-outline">GitHub</a>
           <a href={SITE.x} target="_blank" rel="noreferrer me" class="btn btn-outline">X / Twitter</a>
-          <a href="/notes" class="btn btn-primary">Read the notes</a>
+          <a href="/notes" class="btn btn-primary">Field manual</a>
+          <a href="/writeups" class="btn btn-outline">Browse writeups</a>
         </div>
       </div>
     </div>

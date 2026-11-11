@@ -27,17 +27,17 @@ const jsonLd = [{
   "@type": "CollectionPage",
   name: "Archives",
   url: `${SITE.url}/archives/`,
-  description: "Full archive of f4zzie.dev writeups.",
+  description: "Full archive of all f4zzie.dev notes and writeups.",
 }];
 ---
 <Base
-  seo={{ title: "Archives", description: `Complete archive of all ${notes.length} f4zzie.dev writeups.`, jsonLd }}
+  seo={{ title: "Archives", description: `Complete archive of all ${notes.length} published notes and writeups on f4zzie.dev.`, jsonLd }}
   footer={{ noteCount: notes.length }}
 >
   <div class="page-head">
     <span class="eyebrow">archives</span>
     <h1>Archives</h1>
-  <p>Legacy and unpublished writeups, {notes.length} in total. Official notes will appear in <a href="/notes" class="footer-link">/notes</a> after promotion.</p>
+  <p>Every published page in one timeline — {notes.length} notes and writeups across <a href="/notes" class="footer-link">/notes</a> (the CPTS field manual) and <a href="/writeups" class="footer-link">/writeups</a>.</p>
   </div>
 
   {years.length === 0 ? (

@@ -49,6 +49,10 @@ export const CATEGORY_META = {
     color: "#ef4444",
     blurb: "Capture-the-flag solutions across pwn, web, forensics, and crypto categories.",
   },
+  "Field Manual": {
+    color: "#14b8a6",
+    blurb: "CPTS and internal pentesting field manual: phase-by-phase checklists, commands, and the reasoning behind them.",
+  },
   Resources: {
     color: "#0ea5e9",
     blurb: "Curated tools, platforms, and learning references for offensive security.",

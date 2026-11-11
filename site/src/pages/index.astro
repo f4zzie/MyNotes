@@ -30,7 +30,7 @@ const jsonLd = [
     description: SITE.description,
     potentialAction: {
       "@type": "SearchAction",
-      target: `${SITE.url}/notes?q={search_term_string}`,
+      target: `${SITE.url}/writeups?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   },
@@ -51,7 +51,7 @@ const jsonLd = [
   </section>
 
   <section class="home-listing">
-    <div class="section-bar"><h2>Recently updated</h2><a href="/notes" class="view-all">Browse all →</a></div>
+    <div class="section-bar"><h2>Recently updated</h2><a href="/writeups" class="view-all">Browse all →</a></div>
     {notes.length === 0 ? (
       <div class="empty-state"><p class="es-line">$ ls ./writeups</p><p class="es-msg">// no writeups published yet — check back soon.</p></div>
     ) : (
@@ -64,7 +64,14 @@ const jsonLd = [
               {n.data.description && <p class="pc-desc">{n.data.description}</p>}
               <div class="pc-meta">{n.data.tags?.slice(0, 4).map((t) => <span class="tag">{t}</span>)}</div>
             </div>
-            <div class="home-card-art" aria-hidden="true"><span>{mark(n.data.category)}</span><small>f4zzie.dev</small></div>
+            <div class="home-card-art" aria-hidden="true">
+              {n.data.image ? (
+                <img src={n.data.image} alt="" width="132" height="132"
+                  loading="lazy" decoding="async" />
+              ) : (
+                <><span>{mark(n.data.category)}</span><small>f4zzie.dev</small></>
+              )}
+            </div>
           </a>
         ))}
       </div>

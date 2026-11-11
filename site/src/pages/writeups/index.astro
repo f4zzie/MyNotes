@@ -1,0 +1,39 @@
+---
+import Base from "../../layouts/Base.astro";
+import NoteListing from "../../components/NoteListing.astro";
+import { SITE } from "../../lib/site.mjs";
+import { getWriteupNotes, groupByCategory } from "../../lib/notes.mjs";
+
+// Writeups section = every published note outside the field manual.
+const notes = await getWriteupNotes();
+const categoryCount = groupByCategory(notes).size;
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Writeups",
+  url: `${SITE.url}/writeups/`,
+  description: "HTB, CTF, picoCTF, malware analysis and reverse-engineering writeups by f4zzie.",
+  hasPart: notes.slice(0, 50).map((n) => ({
+    "@type": "TechArticle",
+    headline: n.data.title,
+    url: `${SITE.url}${n.url}`,
+  })),
+}];
+---
+<Base
+  seo={{ title: "Writeups", description: `Browse all ${notes.length} writeups: Hack The Box, CTF and picoCTF solutions, malware analysis, binary exploitation and reverse engineering.`, jsonLd }}
+  footer={{ noteCount: notes.length, categoryCount }}
+>
+  <section class="border-b border-border bg-surface py-10">
+    <div class="container">
+      <span class="eyebrow">writeups</span>
+      <h1 class="mt-2 text-3xl font-bold sm:text-4xl">./writeups</h1>
+      <p class="mt-3 max-w-2xl text-muted">
+        {notes.length} HTB, CTF, picoCTF, malware and reverse-engineering writeups across {categoryCount} tracks. grep by title, tag, or keyword.
+      </p>
+    </div>
+  </section>
+
+  <NoteListing notes={notes} dir="./writeups" placeholder="$ grep -ri 'ROP | PE headers | HTB | format string' ./writeups" />
+</Base>

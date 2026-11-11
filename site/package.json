@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "test": "node --test scripts/*.test.mjs",
     "predev": "node scripts/sync-images.mjs",
     "dev": "astro dev",
     "prebuild": "node scripts/sync-images.mjs",
     "build": "astro build",
+    "postbuild": "node scripts/check-links.mjs",
+    "check:links": "node scripts/check-links.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -16,6 +19,7 @@
     "@astrojs/sitemap": "^3.4.1",
     "@tailwindcss/vite": "^4.1.11",
     "astro": "^5.13.0",
+    "github-slugger": "^2.0.0",
     "tailwindcss": "^4.1.11",
     "unist-util-visit": "^5.0.0"
   },

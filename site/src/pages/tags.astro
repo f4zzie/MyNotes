@@ -1,9 +1,9 @@
 ---
 import Base from "../layouts/Base.astro";
 import { SITE } from "../lib/site.mjs";
-import { getNotes } from "../lib/notes.mjs";
+import { getArchiveNotes, tagListingUrl } from "../lib/notes.mjs";
 
-const notes = await getNotes();
+const notes = await getArchiveNotes();
 
 // tag -> count, sorted by frequency then name
 const counts = new Map();
@@ -36,7 +36,7 @@ const jsonLd = [{
         {tags.length === 0 ? (
           <div class="empty-state" style="width:100%"><p class="es-msg">// no tags yet — writeups are being rebuilt.</p></div>
         ) : tags.map(([tag, count]) => (
-          <a href={`/notes?tag=${encodeURIComponent(tag.toLowerCase())}`} class="tag">
+          <a href={tagListingUrl(notes, tag)} class="tag">
             {tag} <b>{count}</b>
           </a>
         ))}
