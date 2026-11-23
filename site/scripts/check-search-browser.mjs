@@ -310,7 +310,6 @@ async function main() {
     });
   }
   assert.deepEqual(exceptions, [], "Uncaught browser errors");
-  console.log(`check-search-browser: ${external ? "deployed read-only" : "local built-site"} checks passed in Chromium.`);
 }
 
 try {
@@ -319,11 +318,18 @@ try {
   if (child) {
     const exited = child.exitCode !== null || child.signalCode !== null ? Promise.resolve() : once(child, "exit");
     if (call && socket?.readyState === WebSocket.OPEN) await call("Browser.close").catch(() => {});
-    child.kill("SIGTERM");
     await Promise.race([exited, delay(5000)]);
-    if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+    if (child.exitCode === null && child.signalCode === null) {
+      child.kill("SIGTERM");
+      await Promise.race([exited, delay(5000)]);
+      if (child.exitCode === null && child.signalCode === null) {
+        child.kill("SIGKILL");
+        await exited;
+      }
+    }
   }
   socket?.close();
   if (server) { server.closeAllConnections(); await new Promise((done) => server.close(done)); }
-  if (profile) rmSync(profile, { recursive: true, force: true });
+  if (profile) rmSync(profile, { recursive: true, force: true, maxRetries: 8, retryDelay: 125 });
 }
+console.log(`check-search-browser: ${external ? "deployed read-only" : "local built-site"} checks passed in Chromium.`);
