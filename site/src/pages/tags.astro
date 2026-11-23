@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import { SITE } from "../lib/site.mjs";
-import { getArchiveNotes, tagListingUrl } from "../lib/notes.mjs";
+import { getArchiveNotes, tagListings } from "../lib/notes.mjs";
 
 const notes = await getArchiveNotes();
 
@@ -17,11 +17,11 @@ const jsonLd = [{
   "@type": "CollectionPage",
   name: "Tags",
   url: `${SITE.url}/tags/`,
-  description: "All tags across f4zzie.dev writeups.",
+  description: "All tags across f4zzie.dev Notes and Writeups.",
 }];
 ---
 <Base
-  seo={{ title: "Tags", description: `All ${tags.length} tags across f4zzie.dev writeups — click any tag to filter the writeups.`, jsonLd }}
+  seo={{ title: "Tags", description: `All ${tags.length} tags across f4zzie.dev Notes and Writeups — filter each section without mixing them.`, jsonLd }}
   footer={{ noteCount: notes.length }}
 >
   <section class="section">
@@ -29,17 +29,20 @@ const jsonLd = [{
       <div class="page-head">
         <span class="eyebrow">tags</span>
         <h1>Tags</h1>
-        <p>{tags.length} tags across {notes.length} writeups. Pick one to filter.</p>
+        <p>{tags.length} tags across {notes.length} published notes and writeups. Shared tags link to each section separately.</p>
       </div>
 
       <div class="tag-cloud">
         {tags.length === 0 ? (
-          <div class="empty-state" style="width:100%"><p class="es-msg">// no tags yet — writeups are being rebuilt.</p></div>
-        ) : tags.map(([tag, count]) => (
-          <a href={tagListingUrl(notes, tag)} class="tag">
-            {tag} <b>{count}</b>
-          </a>
-        ))}
+          <div class="empty-state" style="width:100%"><p class="es-msg">// no tags yet — notes are being rebuilt.</p></div>
+        ) : tags.flatMap(([tag]) => {
+          const sections = tagListings(notes, tag);
+          return sections.map((section) => (
+            <a href={section.url} class="tag">
+              {tag}{sections.length > 1 && ` (${section.label})`} <b>{section.count}</b>
+            </a>
+          ));
+        })}
       </div>
     </div>
   </section>

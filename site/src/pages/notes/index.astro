@@ -33,7 +33,7 @@ const jsonLd = [{
       <h1 class="mt-2 text-3xl font-bold sm:text-4xl">./notes</h1>
       <p class="mt-3 max-w-2xl text-muted">
         The CPTS &amp; internal pentesting field manual: {notes.length} pages across {phases.size} phases.
-        grep by title, tag, or keyword, or start from the phase-by-phase map.
+        Search titles, headings, commands, and full note content, or start from the phase-by-phase map.
       </p>
       {hub && (
         <div class="mt-5 flex flex-wrap gap-3">
@@ -44,5 +44,5 @@ const jsonLd = [{
     </div>
   </section>
 
-  <NoteListing notes={notes} dir="./notes" placeholder="$ grep -ri 'kerberoast | pivoting | SMB | privesc' ./notes" />
+  <NoteListing notes={notes} dir="./notes" placeholder="Search Notes — e.g. RBCD, DCOnly, Kerberos double-hop" />
 </Base>

@@ -10,6 +10,20 @@ status: archive
 
 # Pivoting and Tunneling
 
+Start from one approved foothold and one selected destination service. A second interface is a reachability clue, not permission to discover every adjacent network. The addresses below describe an illustrative isolated-lab topology; replace them with owner-approved endpoints and keep the evidence of each actual hop private.
+
+### Choose a path before installing a tunnel
+
+| Requirement | Prefer first | Establish before use |
+|---|---|---|
+| One TCP application | SSH local forward or an approved single-service relay | Listener owner/bind, destination host/port, and application identity |
+| Several compatible TCP clients | Existing SSH dynamic forward | SOCKS version, client compatibility, and local-versus-proxy DNS |
+| Pivot can only connect outward | Approved reverse SSH/Chisel mapping | Outbound route, server identity, bound receiving interface, and authentication |
+| TUN-routed clients or supported UDP | Approved Ligolo-ng deployment | Matching platform/architecture, interface ownership, non-conflicting routes, and agent protocol support |
+| DNS/ICMP-only path | A separately approved specialised tunnel | Controlled DNS infrastructure or bidirectional ICMP, required privileges, and expected low throughput |
+
+Use a supported, already-staged tool where possible. Match agent and proxy releases, OS, CPU architecture, certificate/fingerprint, and file digest before execution. A Linux download cannot be extracted as a Darwin binary just because both filenames end in `.tar.gz`. A connected agent proves the control channel only; it does not prove that routes, destination services, or reverse callbacks work.
+
 ## Concepts
 
 | Type | Direction | Example |
@@ -35,16 +49,16 @@ Decide which host owns the listening port and which host opens the final connect
 
 ```bash
 # Local port forward
-ssh -L 8080:10.10.20.10:80 user@$JUMP
+ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8080:172.16.5.20:80 user@10.129.1.20
 
 # Remote port forward
-ssh -R 4444:127.0.0.1:4444 user@$JUMP
+ssh -N -o ExitOnForwardFailure=yes -R 127.0.0.1:4444:127.0.0.1:4444 user@10.129.1.20
 
 # SOCKS proxy
-ssh -D 1080 -N -f user@$JUMP
+ssh -N -o ExitOnForwardFailure=yes -D 127.0.0.1:1080 user@10.129.1.20
 
 # Jump host chain
-ssh -J user@$JUMP user@10.10.20.10
+ssh -J user@10.129.1.20 user@172.16.5.20
 ```
 
 `proxychains` configuration:
@@ -55,11 +69,13 @@ socks5 127.0.0.1 1080
 ```
 
 ```bash
-proxychains nmap -sT -Pn -p 22,80,139,445,3389 10.10.20.0/24
-proxychains nxc smb 10.10.20.10 -u user -p pass
+proxychains nmap -sT -Pn -n -p 22,80,139,445,3389 172.16.5.20
+proxychains nxc smb 172.16.5.20 -u "$AD_USER" -p "$AD_PASSWORD" -d "$DOMAIN"
 ```
 
 Nmap through a SOCKS proxy must use `-sT` (connect scan); raw packets do not traverse SOCKS.
+
+The account names and role addresses are placeholders. For the authenticated example, populate `AD_USER`, `AD_PASSWORD`, and `DOMAIN` from approved evidence using the [[pending/field-manual/01-information-gathering/active-directory-enumeration#Establish the collection context|AD input context]]. Keep the tunnel in the foreground until its first application proof, then record the actual PID/session before backgrounding it.
 
 ### Local forwards and multiple destinations
 
@@ -78,6 +94,8 @@ curl --max-time 10 http://127.0.0.1:8080/
 ```
 
 Repeat `-L` for each mapping; two mappings following only one `-L` do not define two forwards. The destination after each `-L` is contacted from the SSH server.
+
+`ExitOnForwardFailure` detects setup/listener failures; it does not guarantee that a later connection can reach the destination service. Compare a native service probe from the pivot with the same operation through the forward. For HTTP virtual hosts, TLS, and Kerberos, preserve the real service name rather than assuming a loopback connection has the correct application identity.
 
 ### Reverse forward when the pivot connects out
 
@@ -148,7 +166,7 @@ proxychains -f ./proxychains-pivot.conf msfconsole
 Transparent VPN over SSH (root required locally):
 
 ```bash
-sshuttle -r user@$JUMP 10.10.20.0/24
+sshuttle -r user@10.129.1.20 172.16.5.0/24
 ```
 
 Then use normal tools without proxychains.
@@ -247,7 +265,7 @@ chisel client 10.10.14.5:8080 R:8080:127.0.0.1:80
 
 `R:socks` creates a SOCKS proxy on the attacker's `127.0.0.1:1080` by default. Combine with proxychains.
 
-Check the actual bind with `ss -lntp`: unqualified mappings can listen on all interfaces depending on the implementation/version. The explicit loopback mappings below avoid relying on that default.
+Check the actual bind with `ss -lntp`: unqualified mappings can listen on all interfaces depending on the implementation/version. The explicit loopback mappings below avoid relying on that default. Bind the Chisel server to the approved receiving interface, configure its supported authentication, and pin the server fingerprint before exposing it beyond an isolated lab.
 
 ### Normal SOCKS: attacker connects to the pivot
 
@@ -317,10 +335,10 @@ start
 Add a route on the attacker:
 
 ```bash
-sudo ip route add 10.10.20.0/24 dev ligolo
+sudo ip route add 172.16.5.0/24 dev ligolo
 ```
 
-Ligolo creates a TUN interface, so normal tools (including Nmap SYN scans) work without proxychains.
+Ligolo exposes a TUN path, so supported clients can work without Proxychains. The agent's user-space translation is not native raw-packet delivery; use TCP connect scanning as a baseline and do not rely on SYN/OS-fingerprint results as if the scanner were physically on that LAN.
 
 ### Route the internal network and agent loopback
 
@@ -461,7 +479,7 @@ set ReverseListenerBindPort 8081
 run -j
 ```
 
-Use the matching Windows payload type for the HTTPS example. The route is `internal host → 172.16.5.129:1234 → 10.10.14.5:8081`; one handler/protocol should own the listener at a time. Transfer the selected file using [File Transfer](../04-post-exploitation/file-transfer.md).
+Use the matching Windows payload type for the HTTPS example. The route is `internal host → 172.16.5.129:1234 → 10.10.14.5:8081`; one handler/protocol should own the listener at a time. Transfer the selected file using [[pending/field-manual/04-post-exploitation/file-transfer|File Transfer]].
 
 ## DNS tunneling
 
@@ -590,9 +608,8 @@ The client-side SOCKS listener is normally `127.0.0.1:1080`; point a SOCKS-aware
 ## Pivoting reconnaissance
 
 ```bash
-proxychains nmap -sT -Pn -n -p 21,22,25,53,80,88,139,443,445,1433,2049,3306,3389,5985 10.10.20.0/24
-proxychains nxc smb 10.10.20.0/24
-proxychains curl -s http://10.10.20.10/
+proxychains -f ./proxychains-pivot.conf nmap -sT -Pn -n -p 80,445,3389 172.16.5.20
+proxychains -f ./proxychains-pivot.conf curl --max-time 10 http://172.16.5.20/
 ```
 
 Map:
@@ -660,6 +677,27 @@ run
 | dnscat2 / ptunnel-ng | DNS command channel / TCP encapsulated over ICMP | DNS delegation, raw-socket privileges, or filtered tunnel traffic |
 | SocksOverRDP | SOCKS carried over an active RDP channel | Missing plugin/server or blocked virtual channel |
 
+### Validate transport, names, and authentication separately
+
+1. **Transport:** record the native pivot-to-service result, tunnel PID/session, listener bind, and a single end-to-end TCP service proof. Test reverse callback reachability independently; forward access does not prove that an internal host can reach the assessor.
+2. **Names:** decide where DNS resolution occurs. `socks5h` asks the proxy to resolve the hostname; `socks5` resolves it on the client. Proxychains DNS interception is client-dependent, and a tool's own UDP/DNS resolver can bypass it. Do not disable `proxy_dns` universally because one historical lab used an IP-only command.
+3. **Authentication:** use the actual service FQDN/SPN, realm, current clock, and account namespace. LDAP/RPC/SMB collection may need more than the one port used for a proof; a local forward to `127.0.0.1` can need a separate destination-IP option while retaining the real Kerberos/TLS service name.
+
+For an observed internal HTTP service, set `INTERNAL_HOST`, `INTERNAL_IP`, and `INTERNAL_PORT` from the inventory and compare proxy-resolved versus explicitly client-resolved naming:
+
+```bash
+curl --max-time 10 --proxy socks5h://127.0.0.1:9050 "http://$INTERNAL_HOST:$INTERNAL_PORT/"
+curl --max-time 10 --proxy socks5://127.0.0.1:9050 --resolve "$INTERNAL_HOST:$INTERNAL_PORT:$INTERNAL_IP" "http://$INTERNAL_HOST:$INTERNAL_PORT/"
+```
+
+These are alternatives using the same expected Host identity. For TLS, use the real HTTPS scheme and trusted certificate chain. Kerberos clients may need a supported TCP preference when UDP cannot traverse the chosen path; DNS and dynamic RPC limitations still remain. Verify one intended account/resource operation before running a wider collector through the tunnel.
+
+- [ ] No port collision, listener loop, unapproved all-interface bind, or conflicting route.
+- [ ] Native pivot reachability and proxied/TUN service identity agree.
+- [ ] DNS, TLS/SNI, Kerberos SPN/time, and UDP/dynamic-port requirements are recorded.
+- [ ] Forward access and reverse callback have separate proofs.
+- [ ] Existing routes/firewall entries were captured; only assessment-created entries are eligible for cleanup.
+
 ## Pitfalls
 
 - Proxychains + Nmap `-sS` fails; use `-sT`.
@@ -698,4 +736,10 @@ Also stop the corresponding proxy/agent and any Ligolo reverse listener. For Met
 - [dnscat2 PowerShell client](https://github.com/lukebaggett/dnscat2-powershell)
 - [ptunnel-ng](https://github.com/utoni/ptunnel-ng)
 - [SocksOverRDP](https://github.com/nccgroup/SocksOverRDP)
-- CPTS reference: `cheatsheet/Pivoting Tunneling Port Forwarding.md`; topology, endpoint direction, SOCKS versions, repeated SSH forwarding flags, and discovery syntax normalized for these examples.
+- [0x1ceKing — CPTS notes](https://github.com/0x1ceKing/HTB-Certified-Penetration-Testing-Specialist) — SSH, SOCKS, callback, and port-forwarding command families.
+- [buduboti — Pivoting Tunneling, and Port Forwarding](https://github.com/buduboti/CPTS-Walkthrough/blob/main/HTB-Academy/19.%20Pivoting%20Tunneling%2C%20and%20Port%20Forwarding.md) — endpoint direction, local/remote/dynamic forwarding, and transport selection.
+- [Cavementech — Pivoting](https://notes.cavementech.com/pentesting-quick-reference/active-directory-pentesting/active-directory/pivoting) — SOCKS, Meterpreter routes, agent setup, and DNS/proxy distinctions.
+- [OpenSSH — ssh manual](https://man.openbsd.org/ssh) — bind addresses, destination ownership, and forwarding setup checks.
+- [Ligolo-ng — Documentation](https://docs.ligolo.ng/) — supported traffic, interface/routing setup, agent loopback, and listeners.
+
+These workflows are independently written. Historical download/platform mismatches, blanket route deletion, unverified certificates, and source credentials are not treated as deployment defaults. Never delete a pre-existing route merely to make a tunnel take precedence; coordinate a narrow non-conflicting path with the owner.

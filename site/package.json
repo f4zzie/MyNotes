@@ -5,11 +5,13 @@
   "private": true,
   "scripts": {
     "test": "node --test scripts/*.test.mjs",
+    "test:browser": "node scripts/check-search-browser.mjs",
     "predev": "node scripts/sync-images.mjs",
     "dev": "astro dev",
     "prebuild": "node scripts/sync-images.mjs",
     "build": "astro build",
-    "postbuild": "node scripts/check-links.mjs",
+    "postbuild": "node scripts/check-publication.mjs",
+    "check:publication": "node scripts/check-publication.mjs",
     "check:links": "node scripts/check-links.mjs",
     "preview": "astro preview",
     "astro": "astro"

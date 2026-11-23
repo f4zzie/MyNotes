@@ -1,37 +1,50 @@
 ---
-// Searchable note listing shared by the two section indexes (/notes, /writeups):
-// search box, category pills, tag pills, ?q= / ?cat= / ?tag= preselect.
 import { groupByCategory } from "../lib/notes.mjs";
+import { createSearchEntry } from "../lib/search.mjs";
 
 const { notes, placeholder, dir } = Astro.props;
 const byCat = groupByCategory(notes);
 const categories = [...byCat.keys()];
 const allTags = [...new Set(notes.flatMap((n) => n.data.tags || []))].sort();
 ---
-  <section class="section">
+  <section class="section" data-note-listing>
     <div class="container">
-      <input
-        id="note-search"
-        type="search"
-        placeholder={placeholder}
-        class="search-input"
-      />
+      <form role="search" method="get" action={Astro.url.pathname}>
+        <label for="note-search" class="sr-only">Search {dir === "./notes" ? "Notes" : "Writeups"}</label>
+        <input
+          id="note-search"
+          name="q"
+          type="search"
+          placeholder={placeholder}
+          class="search-input"
+          aria-controls="note-grid"
+          aria-describedby="search-help search-status"
+        />
+      </form>
+      <p id="search-help" class="mt-3 text-sm text-muted">Search titles, headings, commands, and note content. Multiple words match together; use quotes for a phrase or | for alternatives.</p>
+      <p id="search-status" class="mt-2 text-sm text-muted" role="status" aria-live="polite">{notes.length} notes</p>
+      <div id="search-warning" class="mt-3 text-sm text-muted" style="display:none" role="status">
+        Full-text search could not load. Results currently use titles, tags, and descriptions.
+        <button type="button" id="retry-search" class="filter-pill">Retry search</button>
+      </div>
+      <noscript><p class="mt-3 text-sm text-muted">Search and filters require JavaScript. All entries remain listed below.</p></noscript>
 
       <div class="mt-5 flex flex-wrap gap-2" id="filter-bar">
-        <button class="filter-pill active" data-cat="all">All ({notes.length})</button>
+        <button type="button" class="filter-pill active" data-cat="all" aria-pressed="true">All ({notes.length})</button>
         {categories.map((c) => (
-          <button class="filter-pill" data-cat={c}>{c} ({byCat.get(c).length})</button>
+          <button type="button" class="filter-pill" data-cat={c} aria-pressed="false">{c} ({byCat.get(c).length})</button>
         ))}
       </div>
 
       <div id="tag-bar" class="mt-3 flex flex-wrap gap-2">
-        <button class="filter-pill active" data-tag="all">All tags</button>
+        <button type="button" class="filter-pill active" data-tag="all" aria-pressed="true">All tags</button>
         {allTags.map((t) => (
-          <button class="filter-pill" data-tag={t.toLowerCase()}>{t}</button>
+          <button type="button" class="filter-pill" data-tag={t.toLowerCase()} aria-pressed="false">{t}</button>
         ))}
       </div>
 
-      <p id="empty" class="mt-10 hidden text-center text-muted">// no notes match your search.</p>
+      <button type="button" id="reset-search" class="filter-pill mt-3">Reset search and filters</button>
+      <p id="empty" class="mt-10 text-center text-muted" style="display:none">// no notes match your search.</p>
 
       <div id="note-grid" class="feed mt-6">
         {notes.length === 0 && (
@@ -41,9 +54,8 @@ const allTags = [...new Set(notes.flatMap((n) => n.data.tags || []))].sort();
           <a
             href={n.url}
             class="note-item post-row"
-            data-cat={n.data.category}
-            data-tags={(n.data.tags || []).join(" ").toLowerCase()}
-            data-search={`${n.data.title} ${n.data.category} ${(n.data.tags||[]).join(" ")} ${n.data.description}`.toLowerCase()}
+            data-id={n.id}
+            data-entry={JSON.stringify(createSearchEntry({ ...n, body: "" }))}
           >
             <span class="post-date">{n.data.date ? new Date(n.data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" }) : "——"}</span>
             <div class="post-main">
@@ -60,59 +72,127 @@ const allTags = [...new Set(notes.flatMap((n) => n.data.tags || []))].sort();
     </div>
   </section>
 
-  <script is:inline>
+   <script>
+    import { filterSearchIndex, normalizeSearch, readSearchState, searchStateUrl } from "../lib/search.mjs";
+
     (function () {
-      const search = document.getElementById("note-search");
-      const items = Array.from(document.querySelectorAll(".note-item"));
-      const pills = Array.from(document.querySelectorAll("#filter-bar .filter-pill"));
-      const tagPills = Array.from(document.querySelectorAll("#tag-bar .filter-pill"));
-      const empty = document.getElementById("empty");
-      let cat = "all";
-      let tag = "all";
+      const root = document.querySelector("[data-note-listing]");
+      if (!root) return;
+      const search = root.querySelector<HTMLInputElement>("#note-search");
+      const form = root.querySelector("form");
+      const grid = root.querySelector<HTMLElement>("#note-grid");
+      const items = Array.from(root.querySelectorAll<HTMLElement>(".note-item"));
+      const byId = new Map(items.map((item) => [item.dataset.id, item]));
+      const pills = Array.from(root.querySelectorAll<HTMLButtonElement>("#filter-bar .filter-pill"));
+      const tagPills = Array.from(root.querySelectorAll<HTMLButtonElement>("#tag-bar .filter-pill"));
+      const empty = root.querySelector<HTMLElement>("#empty");
+      const status = root.querySelector<HTMLElement>("#search-status");
+      const warning = root.querySelector<HTMLElement>("#search-warning");
+      let state = readSearchState(location.search);
+      let index = items.map((item) => JSON.parse(item.dataset.entry));
+      let indexState = "metadata";
 
-      // preselect from ?q= (SearchAction), ?cat= and ?tag=
-      const params = new URLSearchParams(location.search);
-      if (params.get("q")) search.value = params.get("q");
-      function preselect(group, buttons, value) {
-        const b = buttons.find((x) => x.dataset[group] === value);
-        if (b) {
-          buttons.forEach((x) => x.classList.remove("active"));
-          b.classList.add("active");
+      function select(group, buttons, value) {
+        for (const button of buttons) {
+          const active = normalizeSearch(button.dataset[group]) === normalizeSearch(value);
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
         }
       }
-      if (params.get("cat")) { cat = params.get("cat"); preselect("cat", pills, cat); }
-      if (params.get("tag")) { tag = params.get("tag"); preselect("tag", tagPills, tag); }
 
-      function apply() {
-        const q = search.value.trim().toLowerCase();
-        let shown = 0;
-        for (const el of items) {
-          const okCat = cat === "all" || el.dataset.cat === cat;
-          const okTag = tag === "all" || el.dataset.tags.includes(tag);
-          const okQ = !q || el.dataset.search.includes(q);
-          const show = okCat && okTag && okQ;
-          el.style.display = show ? "" : "none";
-          if (show) shown++;
-        }
-        empty.classList.toggle("hidden", shown > 0);
+      function loadIndex() {
+        indexState = "loading";
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 10000);
+        fetch("/search-index.json", { cache: "no-cache", signal: controller.signal })
+          .then((response) => {
+            if (!response.ok) throw new Error("Search index unavailable");
+            return response.json();
+          })
+          .then((entries) => {
+            if (!Array.isArray(entries)) throw new Error("Invalid search index");
+            const full = new Map(entries.map((entry) => [entry.id, entry]));
+            if (full.size !== entries.length) throw new Error("Duplicate search entries");
+            if (items.some((item) => {
+              const entry = full.get(item.dataset.id);
+              return !entry || typeof entry.text !== "string" || typeof entry.metadata !== "string" ||
+                typeof entry.title !== "string" || typeof entry.category !== "string" ||
+                !Array.isArray(entry.tags) || entry.tags.some((tag) => typeof tag !== "string") ||
+                entry.url !== item.getAttribute("href") ||
+                entry.section !== JSON.parse(item.dataset.entry).section;
+            })) throw new Error("Incomplete search index");
+            index = items.map((item) => full.get(item.dataset.id));
+            indexState = "full";
+            warning.style.display = "none";
+            apply("none");
+          })
+          .catch(() => {
+            indexState = "failed";
+            warning.style.display = "";
+            apply("none");
+          })
+          .finally(() => window.clearTimeout(timeout));
       }
-      search.addEventListener("input", apply);
+
+      function apply(historyMode = "replace") {
+        state.q = search.value;
+        if (state.q.trim() && indexState === "metadata") loadIndex();
+        const results = filterSearchIndex(index, state);
+        const visible = new Set(results.map((entry) => entry.id));
+        for (const item of items) {
+          const show = visible.has(item.dataset.id);
+          item.hidden = !show;
+          item.style.display = show ? "" : "none";
+        }
+        grid.append(...results.map((entry) => byId.get(entry.id)));
+        const loading = Boolean(state.q.trim()) && indexState === "loading";
+        grid.setAttribute("aria-busy", String(loading));
+        empty.style.display = results.length > 0 || loading ? "none" : "";
+        status.textContent = loading ? "Loading full-text search…" : `${results.length} of ${items.length} notes match`;
+        select("cat", pills, state.cat);
+        select("tag", tagPills, state.tag);
+        const url = searchStateUrl(location.href, state);
+        if (historyMode !== "none" && url !== `${location.pathname}${location.search}${location.hash}`) {
+          if (historyMode === "push") history.pushState(null, "", url);
+          else history.replaceState(null, "", url);
+        }
+      }
+
+      function restore() {
+        state = readSearchState(location.search);
+        search.value = state.q;
+        apply("none");
+      }
+
+      search.addEventListener("input", () => apply());
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        apply("push");
+      });
       pills.forEach((p) =>
         p.addEventListener("click", () => {
-          pills.forEach((x) => x.classList.remove("active"));
-          p.classList.add("active");
-          cat = p.dataset.cat;
-          apply();
+          state.cat = p.dataset.cat;
+          apply("push");
         })
       );
       tagPills.forEach((p) =>
         p.addEventListener("click", () => {
-          tagPills.forEach((x) => x.classList.remove("active"));
-          p.classList.add("active");
-          tag = p.dataset.tag;
-          apply();
+          state.tag = p.dataset.tag;
+          apply("push");
         })
       );
-      apply();
+      root.querySelector("#reset-search").addEventListener("click", () => {
+        state = { q: "", cat: "all", tag: "all" };
+        search.value = "";
+        apply("push");
+      });
+      root.querySelector("#retry-search").addEventListener("click", () => {
+        warning.style.display = "none";
+        indexState = "metadata";
+        loadIndex();
+        apply("none");
+      });
+      window.addEventListener("popstate", restore);
+      restore();
     })();
-  </script>
+   </script>

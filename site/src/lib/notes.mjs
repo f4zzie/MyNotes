@@ -1,5 +1,7 @@
 import { getCollection } from "astro:content";
-import { isFieldManualId } from "./publish.mjs";
+import { isFieldManualId, tagListings } from "./publish.mjs";
+
+export { tagListings } from "./publish.mjs";
 
 function sortNotes(notes) {
   return notes
@@ -35,15 +37,8 @@ export function sectionOf(note) {
 
 // Section listing that holds the most notes with this tag (tags rarely span both).
 export function tagListingUrl(notes, tag) {
-  const t = tag.toLowerCase();
-  let fm = 0;
-  let wr = 0;
-  for (const n of notes) {
-    if (!(n.data.tags || []).some((x) => x.toLowerCase() === t)) continue;
-    if (isFieldManual(n)) fm++;
-    else wr++;
-  }
-  return `${fm > wr ? "/notes" : "/writeups"}?tag=${encodeURIComponent(t)}`;
+  const sections = tagListings(notes, tag).sort((a, b) => b.count - a.count || b.key.localeCompare(a.key));
+  return sections[0]?.url || `/writeups/?tag=${encodeURIComponent(tag.toLowerCase())}`;
 }
 
 // Notes section: the CPTS field manual (hub + all pages below it).

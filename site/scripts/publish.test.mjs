@@ -1,39 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative, dirname } from "node:path";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { slug as githubSlug } from "github-slugger";
 import { FIELD_MANUAL_PREFIX, isFieldManualId } from "../src/lib/publish.mjs";
+import { baseline, loadPublishedSources } from "./publication.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const vaultDir = join(here, "..", "..", "pending");
 
-function loadPublishedIds(dir) {
-  const ids = [];
-  function walk(current) {
-    for (const entry of readdirSync(current)) {
-      const full = join(current, entry);
-      if (statSync(full).isDirectory()) {
-        walk(full);
-      } else if (entry.endsWith(".md")) {
-        const raw = readFileSync(full, "utf8");
-        const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-        const published = !(fm && /^published:\s*false\s*$/m.test(fm[1]));
-        if (!published) continue;
-        const rel = relative(dir, full).replace(/\\/g, "/").replace(/\.md$/, "");
-        const id = rel
-          .split("/")
-          .map((seg) => githubSlug(seg))
-          .join("/")
-          .replace(/(^|\/)index$/, "");
-        ids.push(id);
-      }
-    }
-  }
-  walk(dir);
-  return ids;
-}
+const sources = loadPublishedSources(vaultDir);
 
 test("matches the field-manual hub itself", () => {
   assert.equal(FIELD_MANUAL_PREFIX, "field-manual");
@@ -54,7 +31,7 @@ test("does not match lookalike prefixes or other notes", () => {
 });
 
 test("every published note appears in exactly one section listing (52 + 85 = 137)", () => {
-  const allIds = loadPublishedIds(vaultDir);
+  const allIds = sources.map((note) => note.id);
   const uniqueIds = new Set(allIds);
   assert.equal(uniqueIds.size, allIds.length, "no duplicate note ids");
   assert.equal(allIds.length, 137, "expected 137 published notes total");
@@ -70,4 +47,28 @@ test("every published note appears in exactly one section listing (52 + 85 = 137
 
   const combined = new Set([...fieldManual, ...writeups]);
   assert.equal(combined.size, allIds.length, "no orphaned notes outside the two sections");
+});
+
+test("preserves the exact published ID set from the section-split commit", () => {
+  assert.equal(baseline.sourceCommit, "67092887a2a1858aec00f3e07df60afd58f25149");
+  assert.deepEqual(sources.map((note) => note.id).sort(), baseline.publishedIds);
+});
+
+test("all field-manual pages remain explicitly published archive notes", () => {
+  for (const note of sources.filter((entry) => isFieldManualId(entry.id))) {
+    assert.match(note.frontmatter, /^published:\s*true\s*$/m, note.id);
+    assert.match(note.frontmatter, /^status:\s*archive\s*$/m, note.id);
+  }
+});
+
+test("Active retains all 19 original redacted screenshots and their exact bytes", () => {
+  const active = sources.find((note) => note.id === "htb-writeup/active");
+  const images = [...active.body.matchAll(/!\[\[([^\]|]+)/g)]
+    .map((match) => `/images/${encodeURIComponent(match[1].split("/").at(-1))}`);
+  assert.equal(baseline.activeImages.length, 19);
+  assert.deepEqual(images, baseline.activeImages.map((image) => image.src));
+  for (const image of baseline.activeImages) {
+    const file = join(here, "..", "..", decodeURIComponent(image.src.slice(1)));
+    assert.equal(createHash("sha256").update(readFileSync(file)).digest("hex"), image.sha256, image.src);
+  }
 });

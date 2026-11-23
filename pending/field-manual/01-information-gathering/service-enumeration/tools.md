@@ -12,6 +12,53 @@ status: archive
 
 ## Nmap
 
+### Staged enumeration workflow
+
+Keep discovery, port coverage, service identification, and vulnerability validation as separate steps. A port-number label is a database guess; the service might run on an unexpected port or return a misleading banner. The commands below run on the assessment host against one approved target, not through a SOCKS proxy.
+
+```bash
+TARGET_IP='192.0.2.20'
+SCAN_DIR='./evidence/nmap'
+mkdir -p "$SCAN_DIR"
+nmap -sT -Pn -n --top-ports 100 --reason -oA "$SCAN_DIR/initial" "$TARGET_IP"
+nmap -sT -Pn -n -p- -T3 --max-rate 100 --reason -oA "$SCAN_DIR/full-tcp" "$TARGET_IP"
+```
+
+The address is a documentation placeholder. Use `-Pn` when the approved host is known to exist but discovery is inconclusive; it does not bypass port filtering. The rate cap is an example agreed budget, not a universal safe rate. Preserve default adaptive timeouts/retries initially, especially over a VPN or an unreliable path. Run raw SYN or UDP scans with the required privileges only when that transport is appropriate.
+
+Extract **confirmed open TCP ports** from the saved XML, then probe only those ports:
+
+```bash
+PORTS=$(python3 - "$SCAN_DIR/full-tcp.xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+ports = sorted({int(port.attrib['portid']) for port in root.findall('.//port')
+                if port.attrib.get('protocol') == 'tcp'
+                and port.find('state').attrib.get('state') == 'open'})
+print(','.join(map(str, ports)))
+PY
+)
+if [ -n "$PORTS" ]; then
+    nmap -sT -Pn -n -sV -p "$PORTS" --reason -oA "$SCAN_DIR/services" "$TARGET_IP"
+fi
+```
+
+Follow an ambiguous result with that protocol's native client and retain its greeting, TLS identity, application response, or authentication behaviour. For selected UDP services, distinguish `open|filtered` from an application reply; a timeout is not service identification. Inspect `nmap --script-help SCRIPT_NAME` before adding named NSE checks. Neither `-sC`, `--script vuln`, nor a service-name wildcard guarantees a read-only test.
+
+| Handoff | Evidence required |
+|---|---|
+| Discovery → port scan | Approved target set, path/interface, discovery limitations, and exclusions |
+| Port scan → service enumeration | Transport, actual port, state/reason, scan time, and saved XML |
+| Service → vulnerability assessment | Product/build evidence, configuration/authentication prerequisites, and relevant advisory |
+| Finding → exploitation | Independent confirmation, exact input/service, permitted impact, and cleanup plan |
+
+- [ ] Compare actual host/port sets after changing timing, not only the number of results.
+- [ ] Recheck a surprising filtered/closed result at baseline timing before calling it a control.
+- [ ] Validate high-port and nonstandard-service findings with the matching client.
+- [ ] Keep source IP/interface, tool version, commands, exclusions, and scan artifacts together.
+- [ ] Use [[pending/field-manual/05-lateral-movement/pivoting-and-tunneling#Transport limitations|the pivot's transport limits]] before applying these commands from another network segment.
+
 ### Scan option reference
 
 | Option | Description |
@@ -64,10 +111,10 @@ On local Ethernet, an ARP response can establish that a host is online without a
 ### Port scanning
 
 ```bash
-nmap -Pn -n -p- --min-rate 5000 --max-retries 1 -oA nmap/allports $IP
-nmap -Pn -n -sS -p 1-1000 -oA nmap/tcp $IP
+nmap -Pn -n -sT -p- -T3 --max-rate 100 -oA nmap/allports "$IP"
+sudo nmap -Pn -n -sS -p 1-1000 -oA nmap/tcp "$IP"
 nmap -Pn -n -sT -p 80,443 $IP          # no raw sockets
-nmap -Pn -n -sU --top-ports 100 -oA nmap/udp $IP
+sudo nmap -Pn -n -sU --top-ports 100 -oA nmap/udp "$IP"
 nmap -Pn -n -sV -sC -p 21,22,80,445 -oA nmap/services $IP
 ```
 
@@ -150,10 +197,10 @@ nmap ... --reason             # why a port is open/filtered
 nmap ... -T4                  # reasonable speed
 nmap ... --max-rate 1000      # cap packets/sec
 nmap ... --exclude 10.10.10.5
-nmap ... --open               # only open ports
+nmap ... --open               # open or possibly open ports
 ```
 
-Rescan with `-sV --version-all` when a version is ambiguous.
+Rescan selected ports with `-sV --version-all` when a version is ambiguous and additional probes are approved. `--open` also retains states such as `open|filtered`; do not count every displayed row as a confirmed listening service.
 
 | Output option | Description |
 |---|---|
@@ -281,19 +328,37 @@ When you have command execution but cannot upload Nmap:
 Test-NetConnection -ComputerName 10.10.10.20 -Port 445
 Test-NetConnection -ComputerName 10.10.10.20 -Port 80 -InformationLevel Detailed
 
-1..1024 | ForEach-Object {
+$TARGET_HOST = Read-Host 'Approved target hostname'
+$PORTS = 22,80,443,445,5985
+$PORTS | ForEach-Object {
+  $port = $_
   $c = New-Object Net.Sockets.TcpClient
-  try { $c.Connect('10.10.10.20', $_); "$_ open" } catch {} finally { $c.Dispose() }
+  try {
+    if ($c.ConnectAsync($TARGET_HOST, $port).Wait(1000) -and $c.Connected) {
+      "$port open"
+    } else {
+      "$port no connection within timeout"
+    }
+  } catch {
+    "$port connection failed"
+  } finally {
+    $c.Dispose()
+  }
 }
 ```
 
 ```cmd
 netstat -ano
-Get-NetTCPConnection -State Listen
-Get-NetUDPEndpoint
 route print
 arp -a
 ```
+
+```powershell
+Get-NetTCPConnection -State Listen
+Get-NetUDPEndpoint
+```
+
+The selected TCP probes have a per-port timeout; increase it for an approved high-latency path rather than equating a timeout with a closed port. Local connection/listener commands describe this host, not every reachable remote service.
 
 ```powershell
 # Slow but native HTTP check
@@ -310,7 +375,7 @@ net view \\10.10.10.20
 dir \\10.10.10.20\share
 ```
 
-Be careful: PowerShell may be logged or blocked by AMSI/CLM. Prefer .NET methods or native binaries when evasion matters.
+PowerShell may be logged or restricted by CLM and endpoint policy; .NET calls can also be restricted. Record that limitation and choose an approved compatible tool rather than disabling the controls.
 
 ## References
 
@@ -318,3 +383,7 @@ Be careful: PowerShell may be logged or blocked by AMSI/CLM. Prefer .NET methods
 - [Nmap NSE](https://nmap.org/nsedoc/)
 - [tcpdump man page](https://www.tcpdump.org/manpages/tcpdump.1.html)
 - [Microsoft — Test-NetConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection)
+- [buduboti — Network Enumeration with NMAP](https://github.com/buduboti/CPTS-Walkthrough/blob/main/HTB-Academy/10.%20Network%20Enumeration%20with%20NMAP.md) — discovery, port-state interpretation, output formats, and timing trade-offs.
+- [Cavementech — Scanning](https://notes.cavementech.com/pentesting-quick-reference/scanning) — unexpected service ports, targeted identification, and NSE selection.
+
+The staged workflow is independently written. Aggressive timing and category-wide scripts from public lab examples are not treated as safe defaults or proof of a vulnerability.

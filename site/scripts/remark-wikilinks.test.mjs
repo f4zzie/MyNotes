@@ -36,6 +36,18 @@ test("rewrites an aliased vault link to the note route", async () => {
   );
 });
 
+test("rewrites escaped aliases in GFM tables without splitting cells", async () => {
+  const out = await html([
+    "| Task | Handoff |",
+    "|---|---|",
+    "| Directory | [[pending/field-manual/03-exploitation/active-directory-delegation-and-acl#ACL abuse\\|ACL validation]], [[pending/field-manual/07-toolkit/netexec\\|NetExec]] |",
+  ].join("\n"));
+  assert.equal((out.match(/<td>/g) || []).length, 2);
+  assert.match(out, /<a href="\/notes\/field-manual\/03-exploitation\/active-directory-delegation-and-acl\/#acl-abuse">ACL validation<\/a>/);
+  assert.match(out, /<a href="\/notes\/field-manual\/07-toolkit\/netexec\/">NetExec<\/a>/);
+  assert.ok(!out.includes("[[pending/"), out);
+});
+
 test("keeps heading fragments, slugged like Astro heading ids", () => {
   const [link] = transform("[[pending/field-manual/07-toolkit/index#AD tool inventory|Toolkit]]");
   assert.equal(link.url, "/notes/field-manual/07-toolkit/#ad-tool-inventory");

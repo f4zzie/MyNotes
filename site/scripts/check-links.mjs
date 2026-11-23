@@ -12,7 +12,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-function htmlFiles(dir) {
+export function htmlFiles(dir) {
   const out = [];
   for (const entry of readdirSync(dir)) {
     const p = join(dir, entry);
